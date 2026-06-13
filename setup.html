@@ -301,6 +301,7 @@
       const res = await fetch('/api/telegram-init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ from_name: fromName, to_name: toName })
       });
       const data = await res.json();
@@ -326,7 +327,7 @@
 
   async function pollTelegram() {
     try {
-      const res  = await fetch(`/api/telegram-status?token=${tgToken}`);
+      const res  = await fetch(`/api/telegram-status?token=${tgToken}`, { credentials: 'include' });
       const data = await res.json();
       if (data.verified) {
         clearInterval(tgPollInterval);
@@ -356,6 +357,7 @@
     try {
       const res  = await fetch('/api/send-otp', {
         method: 'POST', headers: {'Content-Type':'application/json'},
+        credentials: 'include',
         body: JSON.stringify({ phone })
       });
       const data = await res.json();
@@ -393,6 +395,7 @@
     try {
       const res  = await fetch('/api/verify-otp', {
         method: 'POST', headers: {'Content-Type':'application/json'},
+        credentials: 'include',
         body: JSON.stringify({ phone, code, from_name: fromName, to_name: toName })
       });
       const data = await res.json();
