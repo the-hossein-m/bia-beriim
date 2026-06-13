@@ -290,14 +290,15 @@
     /* calendar popup */
     .jalali-calendar {
       display: none;
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0; right: 0;
+      position: fixed;
+      left: 1rem; right: 1rem;
       background: #fff;
       border-radius: 18px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
       padding: 1rem;
-      z-index: 500;
+      z-index: 600;
+      max-height: 70vh;
+      overflow-y: auto;
       animation: popIn 0.2s ease;
     }
     .jalali-calendar.open { display: block; }
@@ -349,6 +350,7 @@
     .cal-day.today { font-weight: 900; color: var(--pink); }
     .cal-day.selected { background: var(--pink); color: #fff !important; }
     .cal-day.empty { pointer-events: none; }
+    .cal-day.past  { color: #ddd; pointer-events: none; cursor: default; }
 
     /* ── confetti canvas ── */
     #confetti-canvas {
@@ -630,9 +632,19 @@
 
   function toggleCalendar() {
     calOpen = !calOpen;
-    document.getElementById('jalali-calendar').classList.toggle('open', calOpen);
-    document.getElementById('jalali-input').classList.toggle('open', calOpen);
-    if (calOpen) renderCalendar();
+    const cal   = document.getElementById('jalali-calendar');
+    const input = document.getElementById('jalali-input');
+    cal.classList.toggle('open', calOpen);
+    input.classList.toggle('open', calOpen);
+    if (calOpen) {
+      renderCalendar();
+      // position below input within viewport
+      const rect = input.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom - 16;
+      const maxH = Math.min(spaceBelow, window.innerHeight * 0.6);
+      cal.style.top = (rect.bottom + 8) + 'px';
+      cal.style.maxHeight = Math.max(maxH, 240) + 'px';
+    }
   }
 
   function renderCalendar() {
@@ -652,7 +664,11 @@
     for (let d=1; d<=daysInMonth; d++) {
       const isToday = d===todayJ.jd && pickerJM===todayJ.jm && pickerJY===todayJ.jy;
       const isSel   = d===selJD && pickerJM===selJM && pickerJY===selJY;
-      html += `<div class="cal-day${isToday?' today':''}${isSel?' selected':''}" onclick="selectDay(${pickerJY},${pickerJM},${d})">${toFarsiNum(d)}</div>`;
+      const isPast  = pickerJY < todayJ.jy ||
+                      (pickerJY === todayJ.jy && pickerJM < todayJ.jm) ||
+                      (pickerJY === todayJ.jy && pickerJM === todayJ.jm && d < todayJ.jd);
+      const cls = ['cal-day', isToday?'today':'', isSel?'selected':'', isPast?'past':''].filter(Boolean).join(' ');
+      html += `<div class="${cls}" onclick="selectDay(${pickerJY},${pickerJM},${d})">${toFarsiNum(d)}</div>`;
     }
     html += '</div>';
     cal.innerHTML = html;
