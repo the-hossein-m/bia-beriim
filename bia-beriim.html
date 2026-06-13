@@ -382,7 +382,7 @@
     <button class="btn-yes" onclick="handleYes()">آره، حتماً! 🥰</button>
   </div>
   <div style="margin-top: 1rem;">
-    <button class="btn-no" id="btn-no" onmouseenter="escapeNo()" onclick="escapeNo()">نه 🙃</button>
+    <button class="btn-no" id="btn-no">نه 🙃</button>
   </div>
   <p class="no-hint" id="no-hint"></p>
 </div>
@@ -493,6 +493,15 @@
 
   // ── running No button ──
   const noBtn = document.getElementById('btn-no');
+  const isTouch = () => 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  if (isTouch()) {
+    // mobile: jump on tap, prevent ghost click from double-jumping
+    noBtn.addEventListener('touchstart', e => { e.preventDefault(); escapeNo(); }, { passive: false });
+  } else {
+    // desktop: jump on hover (before click lands)
+    noBtn.addEventListener('mouseenter', escapeNo);
+    noBtn.addEventListener('click', escapeNo);
+  }
   const hints = [
     'برو اون طرف 😤','فرار کن اگه می‌تونی 😈','نه نداریم! 🚫','بگیرم نمیشه؟ 😂',
     'تلاش می‌کنی؟ 😅','هنوزم سعی می‌کنی 🙈','داری خسته می‌شی 😴','تسلیم شو دیگه 🥹'
