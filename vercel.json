@@ -1,13 +1,7 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "*.html", "use": "@vercel/static" },
-    { "src": "api/*.js", "use": "@vercel/node" }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/", "dest": "/setup.html" },
-    { "src": "/setup", "dest": "/setup.html" },
-    { "src": "/invite", "dest": "/bia-beriim.html" }
+  "rewrites": [
+    { "source": "/", "destination": "/setup.html" },
+    { "source": "/setup", "destination": "/setup.html" },
+    { "source": "/invite", "destination": "/bia-beriim.html" }
   ]
 }
