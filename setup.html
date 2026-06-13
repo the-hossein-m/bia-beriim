@@ -27,171 +27,124 @@
       box-shadow: 0 8px 40px rgba(255,77,141,0.12);
     }
 
-    /* steps indicator */
-    .steps {
-      display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-      margin-bottom: 2rem;
-    }
-    .step-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #eee;
-      transition: background 0.3s, width 0.3s;
-    }
-    .step-dot.active { background: #ff4d8d; width: 24px; border-radius: 4px; }
-    .step-dot.done   { background: #22c55e; }
+    /* progress dots */
+    .steps { display:flex; justify-content:center; gap:0.5rem; margin-bottom:2rem; }
+    .step-dot { width:8px; height:8px; border-radius:50%; background:#eee; transition:background 0.3s, width 0.3s; }
+    .step-dot.active { background:#ff4d8d; width:24px; border-radius:4px; }
+    .step-dot.done   { background:#22c55e; }
 
-    /* step panels */
-    .step-panel { display: none; flex-direction: column; gap: 1.2rem; animation: fadeUp 0.35s ease; }
-    .step-panel.active { display: flex; }
-    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+    /* panels */
+    .panel { display:none; flex-direction:column; gap:1.2rem; animation:fadeUp 0.35s ease; }
+    .panel.active { display:flex; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
 
-    .panel-header { text-align: center; }
-    .panel-header .emoji { font-size: 2.5rem; }
-    .panel-header h2 { font-size: 1.3rem; font-weight: 900; color: #222; margin-top: 0.4rem; }
-    .panel-header p  { font-size: 0.85rem; color: #999; margin-top: 0.3rem; }
+    .panel-header { text-align:center; }
+    .panel-header .emoji { font-size:2.5rem; }
+    .panel-header h2 { font-size:1.3rem; font-weight:900; color:#222; margin-top:0.4rem; }
+    .panel-header p  { font-size:0.85rem; color:#999; margin-top:0.3rem; }
 
     /* fields */
-    .field { display: flex; flex-direction: column; gap: 0.4rem; }
-    .field label { font-size: 0.85rem; font-weight: 700; color: #555; }
+    .field { display:flex; flex-direction:column; gap:0.4rem; }
+    .field label { font-size:0.85rem; font-weight:700; color:#555; }
     .field input {
-      font-family: 'Vazirmatn', sans-serif;
-      font-size: 1rem;
-      padding: 0.75rem 1rem;
-      border: 2px solid #eee;
-      border-radius: 12px;
-      outline: none;
-      background: #fafafa;
-      color: #222;
-      text-align: right;
-      transition: border-color 0.2s;
+      font-family:'Vazirmatn',sans-serif; font-size:1rem;
+      padding:0.75rem 1rem; border:2px solid #eee; border-radius:12px;
+      outline:none; background:#fafafa; color:#222; text-align:right;
+      transition:border-color 0.2s;
     }
-    .field input:focus { border-color: #ff4d8d; background: #fff; }
-    .field input::placeholder { color: #ccc; }
+    .field input:focus { border-color:#ff4d8d; background:#fff; }
+    .field input::placeholder { color:#ccc; }
+    #input-otp { letter-spacing:0.3em; font-size:1.5rem; font-weight:900; text-align:center; direction:ltr; }
 
-    /* OTP input */
-    #input-otp {
-      letter-spacing: 0.3em;
-      font-size: 1.5rem;
-      font-weight: 900;
-      text-align: center;
-      direction: ltr;
+    /* method cards */
+    .method-cards { display:flex; flex-direction:column; gap:0.8rem; }
+    .method-card {
+      display:flex; align-items:center; gap:1rem;
+      padding:1rem 1.2rem; border:2.5px solid #eee; border-radius:16px;
+      cursor:pointer; transition:border-color 0.2s, background 0.2s;
+      background:#fafafa;
     }
+    .method-card:hover { border-color:#ff4d8d; background:#fff0f5; }
+    .method-card .method-icon { font-size:2rem; flex-shrink:0; }
+    .method-card .method-info { flex:1; }
+    .method-card .method-title { font-size:1rem; font-weight:900; color:#222; }
+    .method-card .method-desc  { font-size:0.78rem; color:#999; margin-top:0.2rem; }
+    .method-card.telegram:hover { border-color:#229ED9; background:#f0f8ff; }
+
+    /* telegram waiting */
+    .tg-waiting {
+      text-align:center; padding:1rem 0;
+      display:flex; flex-direction:column; align-items:center; gap:0.8rem;
+    }
+    .tg-waiting .spinner {
+      width:36px; height:36px; border:3px solid #eee;
+      border-top-color:#229ED9; border-radius:50%;
+      animation:spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .tg-waiting p { font-size:0.9rem; color:#666; }
 
     /* buttons */
     .btn {
-      width: 100%;
-      padding: 0.9rem;
-      font-family: 'Vazirmatn', sans-serif;
-      font-size: 1rem;
-      font-weight: 900;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.15s;
+      width:100%; padding:0.9rem;
+      font-family:'Vazirmatn',sans-serif; font-size:1rem; font-weight:900;
+      border:none; border-radius:14px; cursor:pointer;
+      transition:opacity 0.2s, transform 0.15s;
     }
-    .btn:active { transform: scale(0.97); }
+    .btn:active { transform:scale(0.97); }
     .btn-primary {
-      background: linear-gradient(135deg, #ff4d8d, #ff8c42);
-      color: #fff;
-      box-shadow: 0 4px 18px rgba(255,77,141,0.35);
+      background:linear-gradient(135deg,#ff4d8d,#ff8c42); color:#fff;
+      box-shadow:0 4px 18px rgba(255,77,141,0.35);
     }
-    .btn-primary:hover { opacity: 0.92; }
-    .btn-primary:disabled { opacity: 0.4; pointer-events: none; }
-    .btn-ghost {
-      background: none;
-      color: #aaa;
-      font-size: 0.85rem;
-      font-weight: 700;
-      padding: 0.5rem;
+    .btn-primary:hover { opacity:0.92; }
+    .btn-primary:disabled { opacity:0.4; pointer-events:none; }
+    .btn-telegram {
+      background:#229ED9; color:#fff;
+      box-shadow:0 4px 18px rgba(34,158,217,0.35);
     }
-    .btn-ghost:hover { color: #ff4d8d; }
+    .btn-telegram:hover { opacity:0.92; }
+    .btn-ghost { background:none; color:#aaa; font-size:0.85rem; font-weight:700; padding:0.5rem; }
+    .btn-ghost:hover { color:#ff4d8d; }
 
-    /* error message */
-    .error-msg {
-      font-size: 0.85rem;
-      color: #ef4444;
-      text-align: center;
-      min-height: 1.2em;
-    }
-
-    /* countdown */
-    .countdown { font-size: 0.8rem; color: #aaa; text-align: center; }
-    .countdown span { color: #ff4d8d; font-weight: 700; }
-
-    /* result box */
+    /* misc */
+    .error-msg { font-size:0.85rem; color:#ef4444; text-align:center; min-height:1.2em; }
+    .countdown { font-size:0.8rem; color:#aaa; text-align:center; }
+    .countdown span { color:#ff4d8d; font-weight:700; }
+    .divider { height:1px; background:#f0f0f0; }
+    .success-badge { text-align:center; font-size:0.85rem; font-weight:700; color:#22c55e; }
     .link-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: #f5f5f5;
-      border-radius: 12px;
-      padding: 0.6rem 0.8rem;
-      border: 2px solid #eee;
+      display:flex; align-items:center; gap:0.5rem;
+      background:#f5f5f5; border-radius:12px; padding:0.6rem 0.8rem; border:2px solid #eee;
     }
-    .link-text {
-      flex: 1;
-      font-size: 0.75rem;
-      color: #555;
-      word-break: break-all;
-      line-height: 1.5;
-      direction: ltr;
-      text-align: left;
-    }
+    .link-text { flex:1; font-size:0.75rem; color:#555; word-break:break-all; line-height:1.5; direction:ltr; text-align:left; }
     .btn-copy {
-      flex-shrink: 0;
-      padding: 0.45rem 0.9rem;
-      font-family: 'Vazirmatn', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 700;
-      background: #ff4d8d;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
-      white-space: nowrap;
+      flex-shrink:0; padding:0.45rem 0.9rem;
+      font-family:'Vazirmatn',sans-serif; font-size:0.8rem; font-weight:700;
+      background:#ff4d8d; color:#fff; border:none; border-radius:8px; cursor:pointer;
+      transition:background 0.2s; white-space:nowrap;
     }
-    .btn-copy:hover { background: #e0346e; }
-    .btn-copy.copied { background: #22c55e; }
-
+    .btn-copy:hover { background:#e0346e; }
+    .btn-copy.copied { background:#22c55e; }
     .btn-preview {
-      width: 100%;
-      padding: 0.75rem;
-      font-family: 'Vazirmatn', sans-serif;
-      font-size: 0.95rem;
-      font-weight: 700;
-      background: #fff;
-      color: #a855f7;
-      border: 2px solid #a855f7;
-      border-radius: 14px;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
+      width:100%; padding:0.75rem;
+      font-family:'Vazirmatn',sans-serif; font-size:0.95rem; font-weight:700;
+      background:#fff; color:#a855f7; border:2px solid #a855f7; border-radius:14px;
+      cursor:pointer; transition:background 0.15s, color 0.15s;
     }
-    .btn-preview:hover { background: #a855f7; color: #fff; }
-
-    .divider { height: 1px; background: #f0f0f0; }
-    .success-badge {
-      text-align: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #22c55e;
-    }
+    .btn-preview:hover { background:#a855f7; color:#fff; }
   </style>
 </head>
 <body>
 <div class="card">
-  <!-- progress dots -->
+
   <div class="steps">
     <div class="step-dot active" id="dot-1"></div>
     <div class="step-dot"        id="dot-2"></div>
     <div class="step-dot"        id="dot-3"></div>
   </div>
 
-  <!-- STEP 1: Names -->
-  <div class="step-panel active" id="step-1">
+  <!-- PANEL 1: Names -->
+  <div class="panel active" id="panel-names">
     <div class="panel-header">
       <div class="emoji">💌</div>
       <h2>لینک دعوت بساز</h2>
@@ -199,56 +152,100 @@
     </div>
     <div class="field">
       <label>اسم تو 👤</label>
-      <input type="text" id="input-from" placeholder="مثلاً: علی" maxlength="40" oninput="checkStep1()" />
+      <input type="text" id="input-from" placeholder="مثلاً: علی" maxlength="40" oninput="checkNames()" />
     </div>
     <div class="field">
       <label>اسم اون 💘</label>
-      <input type="text" id="input-to" placeholder="مثلاً: سارا" maxlength="40" oninput="checkStep1()" />
+      <input type="text" id="input-to" placeholder="مثلاً: سارا" maxlength="40" oninput="checkNames()" />
     </div>
-    <button class="btn btn-primary" id="btn-step1" onclick="goToStep2()" disabled>بعدی ←</button>
+    <button class="btn btn-primary" id="btn-names" onclick="goToMethod()" disabled>بعدی ←</button>
   </div>
 
-  <!-- STEP 2: Phone -->
-  <div class="step-panel" id="step-2">
+  <!-- PANEL 2: Method picker -->
+  <div class="panel" id="panel-method">
+    <div class="panel-header">
+      <div class="emoji">📬</div>
+      <h2>چطور خبرت کنیم؟</h2>
+      <p>وقتی جواب اومد از این راه بهت می‌گیم</p>
+    </div>
+    <div class="method-cards">
+      <div class="method-card telegram" onclick="startTelegram()">
+        <span class="method-icon">✈️</span>
+        <div class="method-info">
+          <div class="method-title">تلگرام</div>
+          <div class="method-desc">سریع‌تر، رایگان، پیام غنی — توصیه‌شده</div>
+        </div>
+      </div>
+      <div class="method-card" onclick="goToSMS()">
+        <span class="method-icon">📱</span>
+        <div class="method-info">
+          <div class="method-title">پیامک</div>
+          <div class="method-desc">نیاز به تلگرام نداره</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-ghost" onclick="showPanel('panel-names', 1)">← برگشت</button>
+  </div>
+
+  <!-- PANEL 3a: Telegram connect -->
+  <div class="panel" id="panel-tg">
+    <div class="panel-header">
+      <div class="emoji">✈️</div>
+      <h2>وصل شو به ربات</h2>
+      <p>دکمه زیر رو بزن، توی تلگرام Start رو بفرست</p>
+    </div>
+    <button class="btn btn-telegram" id="btn-tg-open" onclick="openTelegramBot()">باز کردن ربات تلگرام ↗</button>
+    <div class="tg-waiting" id="tg-waiting" style="display:none;">
+      <div class="spinner"></div>
+      <p>منتظر تأیید توی تلگرام هستم…</p>
+    </div>
+    <p class="error-msg" id="err-tg"></p>
+    <button class="btn btn-ghost" onclick="showPanel('panel-method', 2)">← برگشت</button>
+  </div>
+
+  <!-- PANEL 3b: SMS phone -->
+  <div class="panel" id="panel-sms-phone">
     <div class="panel-header">
       <div class="emoji">📱</div>
       <h2>شماره موبایلت</h2>
-      <p>وقتی جواب بیاد بهت پیام می‌دیم</p>
+      <p>کد تأیید می‌فرستیم</p>
     </div>
     <div class="field">
       <label>شماره موبایل</label>
-      <input type="tel" id="input-phone" placeholder="09123456789" maxlength="11" oninput="checkStep2()" dir="ltr" style="text-align:center;" />
+      <input type="tel" id="input-phone" placeholder="09123456789" maxlength="11"
+             oninput="checkPhone()" dir="ltr" style="text-align:center;" />
     </div>
     <p class="error-msg" id="err-phone"></p>
     <button class="btn btn-primary" id="btn-send-otp" onclick="sendOTP()" disabled>دریافت کد تأیید 📨</button>
-    <button class="btn btn-ghost" onclick="goToStep(1)">← برگشت</button>
+    <button class="btn btn-ghost" onclick="showPanel('panel-method', 2)">← برگشت</button>
   </div>
 
-  <!-- STEP 3: OTP -->
-  <div class="step-panel" id="step-3">
+  <!-- PANEL 4: OTP -->
+  <div class="panel" id="panel-otp">
     <div class="panel-header">
       <div class="emoji">🔐</div>
       <h2>کد تأیید</h2>
       <p id="otp-desc">کد ۶ رقمی ارسال شده رو وارد کن</p>
     </div>
     <div class="field">
-      <input type="tel" id="input-otp" placeholder="_ _ _ _ _ _" maxlength="6" oninput="checkStep3()" dir="ltr" />
+      <input type="tel" id="input-otp" placeholder="_ _ _ _ _ _" maxlength="6"
+             oninput="checkOTP()" dir="ltr" />
     </div>
     <p class="error-msg" id="err-otp"></p>
     <button class="btn btn-primary" id="btn-verify-otp" onclick="verifyOTP()" disabled>تأیید و ساخت لینک ✨</button>
     <div class="countdown" id="countdown"></div>
     <button class="btn btn-ghost" id="btn-resend" onclick="resendOTP()" style="display:none;">ارسال مجدد کد</button>
-    <button class="btn btn-ghost" onclick="goToStep(2)">← تغییر شماره</button>
+    <button class="btn btn-ghost" onclick="showPanel('panel-sms-phone', 2)">← تغییر شماره</button>
   </div>
 
-  <!-- STEP 4: Link -->
-  <div class="step-panel" id="step-4">
+  <!-- PANEL 5: Final link -->
+  <div class="panel" id="panel-final">
     <div class="panel-header">
       <div class="emoji">🎉</div>
       <h2>لینک آماده‌ست!</h2>
       <p>بفرستش و منتظر جواب باش</p>
     </div>
-    <div class="success-badge">✓ شماره تأیید شد</div>
+    <div class="success-badge" id="final-badge">✓ تأیید شد</div>
     <div class="divider"></div>
     <div class="link-row">
       <span class="link-text" id="link-text"></span>
@@ -256,27 +253,97 @@
     </div>
     <button class="btn-preview" onclick="previewLink()">پیش‌نمایش 👀</button>
   </div>
-</div>
 
+</div>
 <script>
   let fromName = '', toName = '', phone = '', senderId = '';
-  let countdownTimer = null;
+  let tgToken = '', tgPollInterval = null, countdownTimer = null;
 
-  // ── Step 1 ──
-  function checkStep1() {
-    fromName = document.getElementById('input-from').value.trim();
-    toName   = document.getElementById('input-to').value.trim();
-    document.getElementById('btn-step1').disabled = !(fromName && toName);
+  // ── dots helper ──
+  function setDot(active) {
+    for (let i = 1; i <= 3; i++) {
+      const d = document.getElementById(`dot-${i}`);
+      d.classList.toggle('active', i === active);
+      d.classList.toggle('done', i < active);
+    }
   }
 
-  function goToStep2() {
-    fromName = document.getElementById('input-from').value.trim();
-    toName   = document.getElementById('input-to').value.trim();
-    goToStep(2);
+  function showPanel(id, dot) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    setDot(dot);
   }
 
-  // ── Step 2 ──
-  function checkStep2() {
+  // ── Panel 1: Names ──
+  function checkNames() {
+    fromName = document.getElementById('input-from').value.trim();
+    toName   = document.getElementById('input-to').value.trim();
+    document.getElementById('btn-names').disabled = !(fromName && toName);
+  }
+
+  function goToMethod() {
+    fromName = document.getElementById('input-from').value.trim();
+    toName   = document.getElementById('input-to').value.trim();
+    showPanel('panel-method', 2);
+  }
+
+  // ── Panel 2: Method ──
+  function goToSMS()       { showPanel('panel-sms-phone', 2); }
+  async function startTelegram() { showPanel('panel-tg', 2); await initTelegram(); }
+
+  // ── Panel 3a: Telegram ──
+  async function initTelegram() {
+    document.getElementById('btn-tg-open').style.display = 'none';
+    document.getElementById('tg-waiting').style.display  = 'flex';
+    document.getElementById('err-tg').textContent = '';
+
+    try {
+      const res = await fetch('/api/telegram-init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from_name: fromName, to_name: toName })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      tgToken = data.token;
+      document.getElementById('btn-tg-open').href = data.bot_url;
+      document.getElementById('btn-tg-open').style.display = 'block';
+
+      // Start polling
+      tgPollInterval = setInterval(pollTelegram, 2000);
+    } catch (e) {
+      document.getElementById('tg-waiting').style.display = 'none';
+      document.getElementById('btn-tg-open').style.display = 'block';
+      document.getElementById('err-tg').textContent = 'خطا در اتصال. دوباره امتحان کن';
+    }
+  }
+
+  async function openTelegramBot() {
+    const btn = document.getElementById('btn-tg-open');
+    if (btn.href) { window.open(btn.href, '_blank'); return; }
+    await initTelegram();
+  }
+
+  async function pollTelegram() {
+    try {
+      const res  = await fetch(`/api/telegram-status?token=${tgToken}`);
+      const data = await res.json();
+      if (data.verified) {
+        clearInterval(tgPollInterval);
+        senderId = data.sender_id;
+        document.getElementById('final-badge').textContent = '✓ تلگرام متصل شد';
+        showFinalLink();
+      } else if (data.expired) {
+        clearInterval(tgPollInterval);
+        document.getElementById('tg-waiting').style.display = 'none';
+        document.getElementById('err-tg').textContent = 'لینک منقضی شد. دوباره امتحان کن';
+      }
+    } catch { /* ignore polling errors */ }
+  }
+
+  // ── Panel 3b: SMS phone ──
+  function checkPhone() {
     const v = document.getElementById('input-phone').value.replace(/\D/g,'');
     document.getElementById('btn-send-otp').disabled = v.length < 11;
     document.getElementById('err-phone').textContent = '';
@@ -285,41 +352,35 @@
   async function sendOTP() {
     phone = document.getElementById('input-phone').value.trim();
     const btn = document.getElementById('btn-send-otp');
-    btn.disabled = true;
-    btn.textContent = 'در حال ارسال...';
+    btn.disabled = true; btn.textContent = 'در حال ارسال...';
     document.getElementById('err-phone').textContent = '';
-
     try {
-      const res = await fetch('/api/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res  = await fetch('/api/send-otp', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ phone })
       });
       const data = await res.json();
       if (!res.ok) {
         document.getElementById('err-phone').textContent = data.error || 'خطا در ارسال';
-        btn.disabled = false;
-        btn.textContent = 'دریافت کد تأیید 📨';
+        btn.disabled = false; btn.textContent = 'دریافت کد تأیید 📨';
         return;
       }
-      const last4 = phone.slice(-4);
       if (data.dev_code) {
         document.getElementById('otp-desc').innerHTML =
           `🛠️ <b>DEV MODE</b> — کد: <span style="color:#ff4d8d;font-size:1.3rem;font-weight:900;letter-spacing:0.2em">${data.dev_code}</span>`;
       } else {
-        document.getElementById('otp-desc').textContent = `کد به ***${last4} ارسال شد`;
+        document.getElementById('otp-desc').textContent = `کد به ***${phone.slice(-4)} ارسال شد`;
       }
-      goToStep(3);
+      showPanel('panel-otp', 2);
       startCountdown(120);
     } catch {
       document.getElementById('err-phone').textContent = 'خطای شبکه. دوباره امتحان کن';
-      btn.disabled = false;
-      btn.textContent = 'دریافت کد تأیید 📨';
+      btn.disabled = false; btn.textContent = 'دریافت کد تأیید 📨';
     }
   }
 
-  // ── Step 3 ──
-  function checkStep3() {
+  // ── Panel 4: OTP ──
+  function checkOTP() {
     const v = document.getElementById('input-otp').value.replace(/\D/g,'');
     document.getElementById('btn-verify-otp').disabled = v.length < 6;
     document.getElementById('err-otp').textContent = '';
@@ -327,98 +388,77 @@
 
   async function verifyOTP() {
     const code = document.getElementById('input-otp').value.trim();
-    const btn = document.getElementById('btn-verify-otp');
-    btn.disabled = true;
-    btn.textContent = 'در حال تأیید...';
+    const btn  = document.getElementById('btn-verify-otp');
+    btn.disabled = true; btn.textContent = 'در حال تأیید...';
     document.getElementById('err-otp').textContent = '';
-
     try {
-      const res = await fetch('/api/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res  = await fetch('/api/verify-otp', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ phone, code, from_name: fromName, to_name: toName })
       });
       const data = await res.json();
       if (!res.ok) {
         document.getElementById('err-otp').textContent = data.error || 'کد اشتباه است';
-        btn.disabled = false;
-        btn.textContent = 'تأیید و ساخت لینک ✨';
+        btn.disabled = false; btn.textContent = 'تأیید و ساخت لینک ✨';
         return;
       }
-      senderId = data.sender_id;
-      const url = `${location.origin}/invite?from=${encodeURIComponent(fromName)}&to=${encodeURIComponent(toName)}&sid=${senderId}`;
-      document.getElementById('link-text').textContent = url;
       clearInterval(countdownTimer);
-      goToStep(4);
+      senderId = data.sender_id;
+      document.getElementById('final-badge').textContent = '✓ شماره تأیید شد';
+      showFinalLink();
     } catch {
       document.getElementById('err-otp').textContent = 'خطای شبکه. دوباره امتحان کن';
-      btn.disabled = false;
-      btn.textContent = 'تأیید و ساخت لینک ✨';
+      btn.disabled = false; btn.textContent = 'تأیید و ساخت لینک ✨';
     }
   }
 
   async function resendOTP() {
     document.getElementById('btn-resend').style.display = 'none';
     document.getElementById('input-otp').value = '';
-    checkStep3();
-    phone = document.getElementById('input-phone').value.trim();
-    await sendOTPRequest();
+    checkOTP();
+    await fetch('/api/send-otp', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ phone })
+    });
     startCountdown(120);
   }
 
-  async function sendOTPRequest() {
-    await fetch('/api/send-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone })
-    });
+  // ── Final link ──
+  function showFinalLink() {
+    const url = `${location.origin}/invite?from=${encodeURIComponent(fromName)}&to=${encodeURIComponent(toName)}&sid=${senderId}`;
+    document.getElementById('link-text').textContent = url;
+    showPanel('panel-final', 3);
   }
 
-  // ── Step 4 ──
   function copyLink() {
-    const text = document.getElementById('link-text').textContent;
-    navigator.clipboard.writeText(text).then(() => {
+    navigator.clipboard.writeText(document.getElementById('link-text').textContent).then(() => {
       const btn = document.getElementById('btn-copy');
-      btn.textContent = 'کپی شد ✓';
-      btn.classList.add('copied');
+      btn.textContent = 'کپی شد ✓'; btn.classList.add('copied');
       setTimeout(() => { btn.textContent = 'کپی'; btn.classList.remove('copied'); }, 2000);
     });
   }
 
-  function previewLink() {
-    window.open(document.getElementById('link-text').textContent, '_blank');
-  }
+  function previewLink() { window.open(document.getElementById('link-text').textContent, '_blank'); }
 
-  // ── Helpers ──
-  function goToStep(n) {
-    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById(`step-${n}`).classList.add('active');
-    for (let i = 1; i <= 3; i++) {
-      const dot = document.getElementById(`dot-${i}`);
-      dot.classList.toggle('active', i === n);
-      dot.classList.toggle('done', i < n);
-    }
-  }
-
-  function startCountdown(seconds) {
+  // ── Countdown ──
+  function startCountdown(sec) {
     clearInterval(countdownTimer);
     document.getElementById('btn-resend').style.display = 'none';
-    let remaining = seconds;
+    let r = sec;
     const el = document.getElementById('countdown');
-    const update = () => {
-      if (remaining <= 0) {
+    const tick = () => {
+      if (r <= 0) {
         clearInterval(countdownTimer);
         el.textContent = '';
         document.getElementById('btn-resend').style.display = 'block';
         return;
       }
-      const m = Math.floor(remaining / 60);
-      const s = remaining % 60;
+      const m = Math.floor(r/60), s = r%60;
       el.innerHTML = `کد تا <span>${m}:${String(s).padStart(2,'0')}</span> معتبره`;
-      remaining--;
+      r--;
     };
-    update();
-    countdownTimer = setInterval(update, 1000);
+    tick();
+    countdownTimer = setInterval(tick, 1000);
   }
 </script>
 </body>

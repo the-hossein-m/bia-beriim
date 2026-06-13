@@ -1,5 +1,5 @@
 const SUPABASE_URL = 'https://hplromejpkrrdaigmzkf.supabase.co';
-const SENDER = '+18018949161';
+const SMS_SENDER = '+18018949161';
 
 function supabaseHeaders() {
   return {
@@ -7,6 +7,30 @@ function supabaseHeaders() {
     Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
     'Content-Type': 'application/json'
   };
+}
+
+async function sendTelegram(chatId, text) {
+  const res = await fetch(
+    `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' })
+    }
+  );
+  return res.json();
+}
+
+async function sendSMS(phone, message) {
+  const res = await fetch(
+    `https://api.kavenegar.com/v1/${process.env.KAVENEGAR_API_KEY}/sms/send.json`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ receptor: phone, sender: SMS_SENDER, message }).toString()
+    }
+  );
+  return res.json();
 }
 
 module.exports = async (req, res) => {
@@ -31,32 +55,29 @@ module.exports = async (req, res) => {
 
   // Compose message
   const lines = [
-    `${sender.to_name} جواب داد! 🎉`,
-    `قرار: ${vibe || '—'}`,
-    `حال‌وهوا: ${mood || '—'}`,
-    proposed_date ? `تاریخ: ${proposed_date}` : null,
-    proposed_time ? `وقت: ${proposed_time}` : null
+    `<b>${sender.to_name}</b> جواب داد! 🎉`,
+    `📍 قرار: ${vibe || '—'}`,
+    `✨ حال‌وهوا: ${mood || '—'}`,
+    proposed_date ? `📅 تاریخ: ${proposed_date}` : null,
+    proposed_time ? `🕐 وقت: ${proposed_time}` : null
   ].filter(Boolean);
 
-  const message = lines.join('\n');
+  const richMessage  = lines.join('\n');
+  const plainMessage = lines.map(l => l.replace(/<[^>]+>/g, '')).join('\n');
 
-  // Send SMS
-  const kavRes = await fetch(
-    `https://api.kavenegar.com/v1/${process.env.KAVENEGAR_API_KEY}/sms/send.json`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        receptor: sender.phone,
-        sender: SENDER,
-        message
-      }).toString()
-    }
-  );
+  // Try Telegram first, fall back to SMS
+  if (sender.telegram_chat_id) {
+    const tgRes = await sendTelegram(sender.telegram_chat_id, richMessage);
+    if (tgRes.ok) return res.status(200).json({ success: true, channel: 'telegram' });
+    console.error('Telegram send failed:', tgRes);
+  }
 
-  const kavData = await kavRes.json();
-  if (kavData.return?.status !== 200)
-    return res.status(500).json({ error: 'خطا در ارسال پیامک', detail: kavData.return });
+  if (sender.phone) {
+    const kavData = await sendSMS(sender.phone, plainMessage);
+    if (kavData.return?.status === 200)
+      return res.status(200).json({ success: true, channel: 'sms' });
+    return res.status(500).json({ error: 'خطا در ارسال', detail: kavData.return });
+  }
 
-  return res.status(200).json({ success: true });
+  return res.status(500).json({ error: 'No delivery channel available' });
 };
