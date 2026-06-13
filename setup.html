@@ -200,9 +200,11 @@
     const to   = document.getElementById('input-to').value.trim();
     const btn  = document.getElementById('btn-gen');
     if (from && to) {
+      btn.disabled = false;
       btn.style.opacity = '1';
       btn.style.pointerEvents = 'auto';
     } else {
+      btn.disabled = true;
       btn.style.opacity = '0.4';
       btn.style.pointerEvents = 'none';
     }
