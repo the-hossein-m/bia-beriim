@@ -339,7 +339,7 @@
 
   async function pollTelegram() {
     try {
-      const res  = await fetch(`/api/telegram-status?token=${tgToken}`, { credentials: 'include' });
+      const res  = await fetch(`/api/telegram-status?token=${tgToken}&t=${Date.now()}`, { credentials: 'include' });
       const data = await res.json();
       if (data.verified) {
         clearInterval(tgPollInterval);
