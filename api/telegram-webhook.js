@@ -17,84 +17,80 @@ async function sendMessage(chatId, text) {
 }
 
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') return res.status(200).end(); // Telegram retries on non-200
+  // Always return 200 so Telegram doesn't retry
+  res.status(200).end();
 
-  // Parse body if not already parsed
+  if (req.method !== 'POST') return;
+
   let update = req.body;
   if (typeof update === 'string') {
-    try { update = JSON.parse(update); } catch { return res.status(200).end(); }
+    try { update = JSON.parse(update); } catch { return; }
   }
-  if (!update) return res.status(200).end();
+  if (!update) return;
 
   const message = update?.message;
-
-  // Log all incoming updates for debugging
-  console.log('TG update:', JSON.stringify(update).slice(0, 300));
-
-  // Only handle /start commands
-  if (!message?.text?.startsWith('/start')) return res.status(200).end();
-
-  try {
+  if (!message?.text) return;
 
   const chatId = String(message.chat.id);
-  const parts = message.text.split(' ');
-  const token = parts[1];
+  const text   = message.text.trim().toUpperCase();
 
-  if (!token) {
-    await sendMessage(chatId, '👋 سلام! برای استفاده از ربات، لینک دعوت رو از bia-beriim.vercel.app بساز.');
-    return res.status(200).end();
+  // Handle /start — greet user and ask for code
+  if (text === '/START' || text.startsWith('/START ')) {
+    await sendMessage(chatId,
+      '👋 سلام!\n\nبرای اتصال، کد ۴ رقمی که روی سایت نشون داده شده رو اینجا بفرست.\n\nمثلاً: <code>BIA-4829</code>'
+    );
+    return;
   }
 
-  // Find pending session
-  const sessionRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/telegram_sessions?token=eq.${token}&status=eq.pending&limit=1`,
-    { headers: supabaseHeaders() }
-  );
-  const sessions = await sessionRes.json();
+  // Check if message matches a pending short code
+  if (!text.startsWith('BIA-')) return;
 
-  if (!sessions.length) {
-    await sendMessage(chatId, '❌ لینک نامعتبر یا منقضی شده. دوباره از سایت لینک بگیر.');
-    return res.status(200).end();
-  }
+  try {
+    const sessionRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/telegram_sessions?short_code=eq.${text}&status=eq.pending&limit=1`,
+      { headers: supabaseHeaders() }
+    );
+    const sessions = await sessionRes.json();
 
-  const session = sessions[0];
+    if (!sessions.length) {
+      await sendMessage(chatId, '❌ کد نامعتبر یا منقضی شده. دوباره از سایت کد بگیر.');
+      return;
+    }
 
-  // Check expiry
-  if (new Date(session.expires_at) < new Date()) {
-    await sendMessage(chatId, '⏰ لینک منقضی شده. دوباره از سایت لینک بگیر.');
-    return res.status(200).end();
-  }
+    const session = sessions[0];
 
-  // Create sender record
-  const senderRes = await fetch(`${SUPABASE_URL}/rest/v1/senders`, {
-    method: 'POST',
-    headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
-    body: JSON.stringify({
-      from_name: session.from_name,
-      to_name: session.to_name,
-      telegram_chat_id: chatId,
-      verified: true
-    })
-  });
-  const senders = await senderRes.json();
-  const sender = senders[0];
+    if (new Date(session.expires_at) < new Date()) {
+      await sendMessage(chatId, '⏰ کد منقضی شده. دوباره از سایت کد بگیر.');
+      return;
+    }
 
-  // Mark session verified
-  await fetch(`${SUPABASE_URL}/rest/v1/telegram_sessions?token=eq.${token}`, {
-    method: 'PATCH',
-    headers: supabaseHeaders(),
-    body: JSON.stringify({ status: 'verified', chat_id: chatId, sender_id: sender.id })
-  });
+    // Create sender record
+    const senderRes = await fetch(`${SUPABASE_URL}/rest/v1/senders`, {
+      method: 'POST',
+      headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
+      body: JSON.stringify({
+        from_name: session.from_name,
+        to_name:   session.to_name,
+        telegram_chat_id: chatId,
+        verified: true
+      })
+    });
+    const senders = await senderRes.json();
+    const sender  = senders[0];
 
-  // Confirm to user
-  await sendMessage(
-    chatId,
-    `✅ <b>تأیید شد!</b>\n\n${session.from_name} عزیز، منتظر جواب <b>${session.to_name}</b> باش 💘\n\nوقتی فرم رو پر کنه، اینجا بهت خبر می‌دم!`
-  );
+    // Mark session verified
+    await fetch(`${SUPABASE_URL}/rest/v1/telegram_sessions?short_code=eq.${text}`, {
+      method: 'PATCH',
+      headers: supabaseHeaders(),
+      body: JSON.stringify({ status: 'verified', chat_id: chatId, sender_id: sender.id })
+    });
 
-    return res.status(200).end();
+    await sendMessage(chatId,
+      `✅ <b>متصل شدی!</b>\n\n${session.from_name} عزیز، منتظر جواب <b>${session.to_name}</b> باش 💘\n\nوقتی فرم رو پر کنه، اینجا بهت خبر می‌دم!`
+    );
+
   } catch (err) {
-    console.error('Webhook error:', err.message, err.stack);
-    return res.status(200).end(); // Always 200 so Telegram doesn't retry
+    console.error('Webhook error:', err.message);
+    await sendMessage(chatId, '⚠️ یه خطایی پیش اومد. دوباره امتحان کن.');
   }
 };

@@ -192,12 +192,22 @@
     <div class="panel-header">
       <div class="emoji">✈️</div>
       <h2>وصل شو به ربات</h2>
-      <p>دکمه زیر رو بزن، توی تلگرام Start رو بفرست</p>
+      <p>ربات رو باز کن و این کد رو بهش بفرست</p>
     </div>
-    <button class="btn btn-telegram" id="btn-tg-open" onclick="openTelegramBot()">باز کردن ربات تلگرام ↗</button>
+    <div style="text-align:center;">
+      <div id="tg-short-code" style="
+        font-size:2rem; font-weight:900; letter-spacing:0.15em;
+        color:#229ED9; background:#f0f8ff; border-radius:14px;
+        padding:1rem; border:2.5px dashed #229ED9; cursor:pointer;
+      " onclick="copyShortCode()" title="برای کپی کلیک کن">
+        در حال بارگذاری...
+      </div>
+      <p style="font-size:0.75rem; color:#aaa; margin-top:0.5rem;">برای کپی کلیک کن</p>
+    </div>
+    <button class="btn btn-telegram" id="btn-tg-open" onclick="openTelegramBot()">باز کردن ربات ↗</button>
     <div class="tg-waiting" id="tg-waiting" style="display:none;">
       <div class="spinner"></div>
-      <p>منتظر تأیید توی تلگرام هستم…</p>
+      <p>منتظر دریافت کد توی تلگرام هستم…</p>
     </div>
     <p class="error-msg" id="err-tg"></p>
     <button class="btn btn-ghost" onclick="showPanel('panel-method', 2)">← برگشت</button>
@@ -309,7 +319,9 @@
 
       tgToken  = data.token;
       tgBotUrl = data.bot_url;
+      document.getElementById('tg-short-code').textContent = data.short_code;
       document.getElementById('btn-tg-open').style.display = 'block';
+      document.getElementById('tg-waiting').style.display  = 'flex';
 
       // Start polling
       tgPollInterval = setInterval(pollTelegram, 2000);
@@ -441,6 +453,16 @@
   }
 
   function previewLink() { window.open(document.getElementById('link-text').textContent, '_blank'); }
+
+  function copyShortCode() {
+    const code = document.getElementById('tg-short-code').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      const el = document.getElementById('tg-short-code');
+      const orig = el.textContent;
+      el.textContent = '✓ کپی شد!';
+      setTimeout(() => { el.textContent = orig; }, 1500);
+    });
+  }
 
   // ── Countdown ──
   function startCountdown(sec) {

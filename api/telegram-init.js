@@ -2,6 +2,12 @@ const crypto = require('crypto');
 
 const SUPABASE_URL = 'https://hplromejpkrrdaigmzkf.supabase.co';
 
+function generateShortCode() {
+  // e.g. "BIA-4829"
+  const num = Math.floor(1000 + Math.random() * 9000);
+  return `BIA-${num}`;
+}
+
 function supabaseHeaders() {
   return {
     apikey: process.env.SUPABASE_SERVICE_KEY,
@@ -21,13 +27,14 @@ module.exports = async (req, res) => {
   if (!from_name || !to_name)
     return res.status(400).json({ error: 'Missing names' });
 
-  const token = crypto.randomBytes(16).toString('hex');
+  const token     = crypto.randomBytes(16).toString('hex');
+  const shortCode = generateShortCode();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
   const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/telegram_sessions`, {
     method: 'POST',
     headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
-    body: JSON.stringify({ token, from_name, to_name, status: 'pending', expires_at: expiresAt })
+    body: JSON.stringify({ token, short_code: shortCode, from_name, to_name, status: 'pending', expires_at: expiresAt })
   });
 
   if (!insertRes.ok) {
@@ -38,6 +45,7 @@ module.exports = async (req, res) => {
   const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'BiaBeriimbot';
   return res.status(200).json({
     token,
-    bot_url: `https://t.me/${botUsername}?start=${token}`
+    short_code: shortCode,
+    bot_url: `https://t.me/${botUsername}`
   });
 };
