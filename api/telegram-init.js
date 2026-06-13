@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Failed to create session', detail: err });
   }
 
-  const botUsername = process.env.TELEGRAM_BOT_USERNAME;
+  const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'BiaBeriimbot';
   return res.status(200).json({
     token,
     bot_url: `https://t.me/${botUsername}?start=${token}`
