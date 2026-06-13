@@ -20,19 +20,16 @@ async function sendMessage(chatId, text) {
 }
 
 module.exports = async (req, res) => {
-  // Always return 200 so Telegram doesn't retry
-  res.status(200).end();
-
-  if (req.method !== 'POST') return;
+  if (req.method !== 'POST') return res.status(200).end();
 
   let update = req.body;
   if (typeof update === 'string') {
-    try { update = JSON.parse(update); } catch { return; }
+    try { update = JSON.parse(update); } catch { return res.status(200).end(); }
   }
-  if (!update) return;
+  if (!update) return res.status(200).end();
 
   const message = update?.message;
-  if (!message?.text) return;
+  if (!message?.text) return res.status(200).end();
 
   const chatId = String(message.chat.id);
   const text   = message.text.trim().toUpperCase();
@@ -42,11 +39,11 @@ module.exports = async (req, res) => {
     await sendMessage(chatId,
       '👋 سلام!\n\nبرای اتصال، کد ۴ رقمی که روی سایت نشون داده شده رو اینجا بفرست.\n\nمثلاً: <code>BIA-4829</code>'
     );
-    return;
+    return res.status(200).end();
   }
 
   // Check if message matches a pending short code
-  if (!text.startsWith('BIA-')) return;
+  if (!text.startsWith('BIA-')) return res.status(200).end();
 
   try {
     console.log(`[webhook] looking up short_code=${text} chat_id=${chatId}`);
@@ -94,8 +91,11 @@ module.exports = async (req, res) => {
       `✅ <b>متصل شدی!</b>\n\n${session.from_name} عزیز، منتظر جواب <b>${session.to_name}</b> باش 💘\n\nوقتی فرم رو پر کنه، اینجا بهت خبر می‌دم!`
     );
 
+    return res.status(200).end();
+
   } catch (err) {
-    console.error('Webhook error:', err.message);
-    await sendMessage(chatId, '⚠️ یه خطایی پیش اومد. دوباره امتحان کن.');
+    console.error('Webhook error:', err.message, err.stack);
+    await sendMessage(chatId, '⚠️ یه خطایی پیش اومد. دوباره امتحان کن.').catch(() => {});
+    return res.status(200).end();
   }
 };
