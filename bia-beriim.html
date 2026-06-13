@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>یه چیزی بپرسم؟ 👀</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --pink: #ff4d8d;
+      --yellow: #ffe44d;
+      --purple: #a855f7;
+      --bg: #fff0f5;
+    }
+
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── floating hearts bg ── */
+    .hearts-bg {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    }
+    .heart-float {
+      position: absolute;
+      font-size: 1.4rem;
+      animation: floatUp linear infinite;
+      opacity: 0.18;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(110vh) rotate(0deg); opacity: 0.18; }
+      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* ── screens ── */
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .screen.active { display: flex; }
+    @keyframes popIn {
+      0%   { transform: scale(0.7); opacity: 0; }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+
+    /* ── intro ── */
+    #screen-intro h1 {
+      font-size: clamp(1.6rem, 5vw, 2.6rem);
+      font-weight: 900;
+      color: #222;
+      line-height: 1.5;
+      max-width: 560px;
+    }
+    #screen-intro h1 span { color: var(--pink); }
+    #screen-intro .sub {
+      margin-top: 0.8rem;
+      font-size: 1rem;
+      color: #777;
+    }
+    .btn-main {
+      margin-top: 2rem;
+      padding: 0.9rem 2.4rem;
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: var(--pink);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(255,77,141,0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-main:hover { transform: scale(1.06); box-shadow: 0 6px 24px rgba(255,77,141,0.5); }
+    .btn-main:active { transform: scale(0.97); }
+
+    /* ── ask ── */
+    #screen-ask .question {
+      font-size: clamp(1.5rem, 5vw, 2.4rem);
+      font-weight: 900;
+      color: #222;
+      max-width: 600px;
+      line-height: 1.5;
+    }
+    #screen-ask .question span { color: var(--pink); }
+    .big-emoji { font-size: 4rem; margin-bottom: 1rem; animation: wiggle 1.2s ease-in-out infinite; }
+    @keyframes wiggle {
+      0%,100% { transform: rotate(-8deg); }
+      50%      { transform: rotate(8deg); }
+    }
+
+    .btn-row {
+      margin-top: 2.2rem;
+      display: flex;
+      gap: 1.2rem;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-yes {
+      padding: 0.9rem 2.6rem;
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ff4d8d, #ff8c42);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(255,77,141,0.45);
+      transition: transform 0.15s;
+    }
+    .btn-yes:hover { transform: scale(1.08); }
+    .btn-no {
+      padding: 0.75rem 2rem;
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #eee;
+      color: #888;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      position: fixed; /* will be repositioned by JS */
+      transition: left 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  top  0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  transform 0.3s ease,
+                  font-size 0.2s, opacity 0.3s;
+      z-index: 999;
+      white-space: nowrap;
+    }
+
+    .no-hint {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: #ccc;
+      min-height: 1.2em;
+      transition: opacity 0.3s;
+    }
+
+    /* ── quiz ── */
+    #screen-quiz h2 {
+      font-size: clamp(1.3rem, 4vw, 2rem);
+      font-weight: 900;
+      color: #222;
+      margin-bottom: 0.4rem;
+    }
+    #screen-quiz .step-label {
+      font-size: 0.85rem;
+      color: var(--pink);
+      font-weight: 700;
+      margin-bottom: 1.4rem;
+      letter-spacing: 0.05em;
+    }
+    .choices {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      justify-content: center;
+      max-width: 500px;
+    }
+    .choice-btn {
+      padding: 0.75rem 1.5rem;
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #fff;
+      color: #333;
+      border: 2.5px solid #eee;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.15s;
+    }
+    .choice-btn:hover {
+      border-color: var(--pink);
+      background: #fff0f5;
+      transform: scale(1.05);
+    }
+    .choice-btn.selected {
+      border-color: var(--pink);
+      background: var(--pink);
+      color: #fff;
+      transform: scale(1.05);
+    }
+
+    .btn-next {
+      margin-top: 1.8rem;
+      padding: 0.8rem 2.2rem;
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      background: var(--purple);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(168,85,247,0.35);
+      opacity: 0.4;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-next.ready { opacity: 1; pointer-events: auto; }
+    .btn-next.ready:hover { transform: scale(1.05); }
+
+    /* ── final ── */
+    #screen-final {
+      gap: 0.6rem;
+    }
+    #screen-final .big-final {
+      font-size: 5rem;
+      animation: bounce 0.8s ease infinite alternate;
+    }
+    @keyframes bounce {
+      0%   { transform: translateY(0); }
+      100% { transform: translateY(-14px); }
+    }
+    #screen-final h2 {
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      font-weight: 900;
+      color: #222;
+      max-width: 520px;
+      line-height: 1.5;
+    }
+    #screen-final h2 span { color: var(--pink); }
+    #screen-final .summary {
+      margin-top: 0.8rem;
+      font-size: 1rem;
+      color: #555;
+      max-width: 420px;
+      line-height: 1.7;
+    }
+    #screen-final .summary b { color: var(--purple); }
+
+    /* ── datetime ── */
+    .datetime-wrap { width: 100%; max-width: 360px; }
+    .dt-field label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 0.4rem;
+    }
+    #input-date {
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 1rem;
+      width: 100%;
+      padding: 0.7rem 1rem;
+      border: 2.5px solid #eee;
+      border-radius: 12px;
+      outline: none;
+      background: #fafafa;
+      color: #222;
+      transition: border-color 0.2s;
+      direction: ltr;
+      text-align: center;
+    }
+    #input-date:focus { border-color: var(--pink); background: #fff; }
+
+    /* ── confetti canvas ── */
+    #confetti-canvas {
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+<div class="hearts-bg" id="hearts-bg"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<!-- ── SCREEN 1: Intro ── -->
+<div class="screen active" id="screen-intro">
+  <div class="big-emoji">👀</div>
+  <h1><span id="from-name">یکی</span> یه چیزی داره ازت می‌پرسه…</h1>
+  <p class="sub">مطمئنم آماده‌ای. نفس بکش.</p>
+  <button class="btn-main" onclick="showScreen('screen-ask')">باشه، بپرس 🙈</button>
+</div>
+
+<!-- ── SCREEN 2: The Ask ── -->
+<div class="screen" id="screen-ask">
+  <div class="big-emoji">💘</div>
+  <p class="question">
+    <span id="from-name-2">یکی</span>، می‌خواد بدونه…<br/>
+    باهاش می‌ری بیرون، <span id="to-name">عزیزم</span>؟ 🥺
+  </p>
+  <div class="btn-row">
+    <button class="btn-yes" onclick="handleYes()">آره، حتماً! 🥰</button>
+  </div>
+  <p class="no-hint" id="no-hint"></p>
+  <button class="btn-no" id="btn-no" onmouseenter="escapeNo()" onclick="escapeNo()">نه 🙃</button>
+</div>
+
+<!-- ── SCREEN 3a: Quiz – Vibe ── -->
+<div class="screen" id="screen-quiz-1">
+  <div class="big-emoji">🤔</div>
+  <p class="step-label">سوال ۱ از ۳</p>
+  <h2>چه جور قراری دوست داری؟</h2>
+  <div class="choices" id="choices-1">
+    <button class="choice-btn" data-val="کافه ☕" onclick="pickChoice(this,'q1')">کافه ☕</button>
+    <button class="choice-btn" data-val="فیلم 🎬" onclick="pickChoice(this,'q1')">فیلم 🎬</button>
+    <button class="choice-btn" data-val="شام رمانتیک 🍷" onclick="pickChoice(this,'q1')">شام رمانتیک 🍷</button>
+    <button class="choice-btn" data-val="ماجراجویی 🎢" onclick="pickChoice(this,'q1')">ماجراجویی 🎢</button>
+  </div>
+  <button class="btn-next" id="next-1" onclick="showScreen('screen-quiz-2')">بعدی ←</button>
+</div>
+
+<!-- ── SCREEN 3b: Quiz – Mood ── -->
+<div class="screen" id="screen-quiz-2">
+  <div class="big-emoji">✨</div>
+  <p class="step-label">سوال ۲ از ۳</p>
+  <h2>حال‌وهوات چطوره؟</h2>
+  <div class="choices" id="choices-2">
+    <button class="choice-btn" data-val="ریلکس 😌" onclick="pickChoice(this,'q2')">ریلکس 😌</button>
+    <button class="choice-btn" data-val="شیک‌وپیک 🕶️" onclick="pickChoice(this,'q2')">شیک‌وپیک 🕶️</button>
+    <button class="choice-btn" data-val="دیوونه‌وار 🤪" onclick="pickChoice(this,'q2')">دیوونه‌وار 🤪</button>
+    <button class="choice-btn" data-val="هرجور تو بخوای 🫶" onclick="pickChoice(this,'q2')">هرجور تو بخوای 🫶</button>
+  </div>
+  <button class="btn-next" id="next-2" onclick="showScreen('screen-quiz-3')">بعدی ←</button>
+</div>
+
+<!-- ── SCREEN 3c: Quiz – Date & Time ── -->
+<div class="screen" id="screen-quiz-3">
+  <div class="big-emoji">📅</div>
+  <p class="step-label">سوال ۳ از ۳</p>
+  <h2>کِی بریم؟</h2>
+  <div class="datetime-wrap">
+    <div class="dt-field">
+      <label>تاریخ 🗓️</label>
+      <input type="date" id="input-date" oninput="checkDatetime()" />
+    </div>
+    <div class="dt-field" style="margin-top:1rem;">
+      <label>چه وقتی از روز؟ 🕐</label>
+      <div class="choices" style="margin-top:0.6rem;">
+        <button class="choice-btn" data-val="صبح ☀️" onclick="pickChoice(this,'q3')">صبح ☀️</button>
+        <button class="choice-btn" data-val="بعدازظهر 🌤️" onclick="pickChoice(this,'q3')">بعدازظهر 🌤️</button>
+        <button class="choice-btn" data-val="شب 🌙" onclick="pickChoice(this,'q3')">شب 🌙</button>
+      </div>
+    </div>
+  </div>
+  <button class="btn-next" id="next-3" onclick="showFinal()">بزن بریم! 🚀</button>
+</div>
+
+<!-- ── SCREEN 4: Final ── -->
+<div class="screen" id="screen-final">
+  <div class="big-final">🎉</div>
+  <h2><span id="final-from">یکی</span> داره از خوشحالی پس می‌افته!</h2>
+  <p class="summary" id="final-summary"></p>
+  <button class="btn-main" style="margin-top:1.4rem; background: var(--purple);" onclick="window.location.reload()">از اول 🔁</button>
+</div>
+
+<script>
+  // ── Supabase ──
+  const SUPABASE_URL = 'https://hplromejpkrrdaigmzkf.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwbHJvbWVqcGtycmRhaWdtemtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMTUzODIsImV4cCI6MjA5Njg5MTM4Mn0.guKWuD3x3c595ZApqMMB_Zu-vQbxAArDGo86GO41YEQ';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ── URL params ──
+  const params = new URLSearchParams(location.search);
+  const FROM = params.get('from') || 'یکی';
+  const TO   = params.get('to')   || 'عزیزم';
+
+  document.getElementById('from-name').textContent   = FROM;
+  document.getElementById('from-name-2').textContent = FROM;
+  document.getElementById('to-name').textContent     = TO;
+  document.getElementById('final-from').textContent  = FROM;
+
+  // ── answers store ──
+  const answers = {};
+
+  // ── floating hearts ──
+  const heartsEl = document.getElementById('hearts-bg');
+  const EMOJIS = ['❤️','💕','💖','💗','🌸','✨','💫','🌹','💝'];
+  for (let i = 0; i < 18; i++) {
+    const h = document.createElement('span');
+    h.className = 'heart-float';
+    h.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+    h.style.left = Math.random() * 100 + 'vw';
+    h.style.animationDuration = (6 + Math.random() * 10) + 's';
+    h.style.animationDelay    = (Math.random() * 12) + 's';
+    h.style.fontSize = (1 + Math.random() * 1.5) + 'rem';
+    heartsEl.appendChild(h);
+  }
+
+  // ── screen switcher ──
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id === 'screen-ask') positionNoButton();
+  }
+
+  // ── running No button ──
+  const noBtn = document.getElementById('btn-no');
+  const hints = [
+    'برو اون طرف 😤','فرار کن اگه می‌تونی 😈','نه نداریم! 🚫','بگیرم نمیشه؟ 😂',
+    'تلاش می‌کنی؟ 😅','هنوزم سعی می‌کنی 🙈','داری خسته می‌شی 😴','تسلیم شو دیگه 🥹'
+  ];
+  let noClickCount = 0;
+  let noSpeed = 1;
+
+  function positionNoButton() {
+    noBtn.style.top  = '80%';
+    noBtn.style.left = '55%';
+    noBtn.style.display = 'block';
+  }
+
+  function escapeNo() {
+    noClickCount++;
+    noSpeed = Math.min(noSpeed + 0.4, 5);
+    const hint = hints[Math.min(noClickCount - 1, hints.length - 1)];
+    document.getElementById('no-hint').textContent = hint;
+
+    const btnW = noBtn.offsetWidth;
+    const btnH = noBtn.offsetHeight;
+    const maxX = window.innerWidth  - btnW  - 10;
+    const maxY = window.innerHeight - btnH - 10;
+
+    // move away from current position
+    let nx = Math.random() * maxX;
+    let ny = Math.random() * maxY;
+    // shrink a tiny bit each time, stops at 70%
+    const scale = Math.max(0.7, 1 - noClickCount * 0.03);
+    noBtn.style.transform = `scale(${scale})`;
+    noBtn.style.left = nx + 'px';
+    noBtn.style.top  = ny + 'px';
+
+    if (noClickCount >= 5) {
+      noBtn.textContent = 'نه نه نه!! 😭';
+    }
+    if (noClickCount >= 8) {
+      noBtn.style.opacity = '0.3';
+    }
+  }
+
+  // ── yes ──
+  function handleYes() {
+    noBtn.style.display = 'none';
+    launchConfetti();
+    setTimeout(() => showScreen('screen-quiz-1'), 900);
+  }
+
+  // ── choice picking ──
+  function pickChoice(btn, q) {
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    answers[q] = btn.dataset.val;
+
+    const map = { q1: 'next-1', q2: 'next-2', q3: 'next-3' };
+    document.getElementById(map[q]).classList.add('ready');
+    if (q === 'q3') checkDatetime();
+  }
+
+  // ── date+time both required for next-3 ──
+  function checkDatetime() {
+    const dateVal = document.getElementById('input-date').value;
+    const next3   = document.getElementById('next-3');
+    if (dateVal && answers.q3) next3.classList.add('ready');
+    else next3.classList.remove('ready');
+  }
+
+  // ── final screen ──
+  async function showFinal() {
+    showScreen('screen-final');
+    launchConfetti();
+    const vibe = answers.q1 || 'یه جای باحال';
+    const mood = answers.q2 || 'هرجور باشه';
+    const time = answers.q3 || '';
+    const date = document.getElementById('input-date')?.value || '';
+
+    // format date for display
+    let dateDisplay = date;
+    if (date) {
+      const d = new Date(date);
+      dateDisplay = d.toLocaleDateString('fa-IR', { year:'numeric', month:'long', day:'numeric' });
+    }
+
+    document.getElementById('final-summary').innerHTML =
+      `قرار: <b>${vibe}</b><br/>` +
+      `حال‌وهوا: <b>${mood}</b><br/>` +
+      (dateDisplay ? `تاریخ: <b>${dateDisplay}</b><br/>` : '') +
+      (time        ? `وقت: <b>${time}</b><br/>` : '') +
+      `<br/>${FROM} منتظرته 🌹`;
+
+    // ── save to Supabase ──
+    await db.from('responses').insert({
+      from_name:     FROM,
+      to_name:       TO,
+      answer:        'آره',
+      vibe:          vibe,
+      mood:          mood,
+      proposed_date: date,
+      proposed_time: time
+    });
+  }
+
+  // ── confetti ──
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx    = canvas.getContext('2d');
+  let particles = [];
+  let animId;
+
+  function launchConfetti() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    particles = [];
+    const colors = ['#ff4d8d','#ffe44d','#a855f7','#ff8c42','#4ade80','#38bdf8'];
+    for (let i = 0; i < 160; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: -10 - Math.random() * 200,
+        w: 6 + Math.random() * 10,
+        h: 4 + Math.random() * 8,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 3,
+        vy: 2 + Math.random() * 5,
+        angle: Math.random() * Math.PI * 2,
+        spin:  (Math.random() - 0.5) * 0.2,
+        alpha: 1
+      });
+    }
+    if (animId) cancelAnimationFrame(animId);
+    drawConfetti();
+  }
+
+  function drawConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    particles.forEach(p => {
+      p.x     += p.vx;
+      p.y     += p.vy;
+      p.angle += p.spin;
+      p.vy    += 0.08; // gravity
+      if (p.y < canvas.height + 20) alive = true;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle   = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    if (alive) animId = requestAnimationFrame(drawConfetti);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  window.addEventListener('resize', () => {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ست‌آپ دعوت‌نامه 💌</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background: #fff0f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 8px 40px rgba(255, 77, 141, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .card-header {
+      text-align: center;
+    }
+    .card-header .emoji { font-size: 3rem; }
+    .card-header h1 {
+      margin-top: 0.5rem;
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #222;
+    }
+    .card-header p {
+      margin-top: 0.4rem;
+      font-size: 0.9rem;
+      color: #999;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .field label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #555;
+    }
+    .field input {
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 1rem;
+      padding: 0.75rem 1rem;
+      border: 2px solid #eee;
+      border-radius: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+      background: #fafafa;
+      color: #222;
+      text-align: right;
+    }
+    .field input:focus { border-color: #ff4d8d; background: #fff; }
+    .field input::placeholder { color: #ccc; }
+
+    .btn-generate {
+      width: 100%;
+      padding: 0.9rem;
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ff4d8d, #ff8c42);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(255, 77, 141, 0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-generate:hover { transform: scale(1.02); box-shadow: 0 6px 24px rgba(255,77,141,0.45); }
+    .btn-generate:active { transform: scale(0.98); }
+
+    /* result box */
+    .result-box {
+      display: none;
+      flex-direction: column;
+      gap: 0.8rem;
+      animation: fadeIn 0.4s ease;
+    }
+    .result-box.show { display: flex; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+    .result-box .label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #aaa;
+    }
+    .link-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #f5f5f5;
+      border-radius: 12px;
+      padding: 0.6rem 0.8rem;
+      border: 2px solid #eee;
+    }
+    .link-text {
+      flex: 1;
+      font-size: 0.78rem;
+      color: #555;
+      word-break: break-all;
+      line-height: 1.5;
+      direction: ltr;
+      text-align: left;
+    }
+    .btn-copy {
+      flex-shrink: 0;
+      padding: 0.45rem 0.9rem;
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: #ff4d8d;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .btn-copy:hover { background: #e0346e; }
+    .btn-copy.copied { background: #22c55e; }
+
+    .btn-preview {
+      width: 100%;
+      padding: 0.75rem;
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      background: #fff;
+      color: #a855f7;
+      border: 2px solid #a855f7;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-preview:hover { background: #a855f7; color: #fff; }
+
+    .divider {
+      height: 1px;
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="card-header">
+    <div class="emoji">💌</div>
+    <h1>لینک دعوت بساز</h1>
+    <p>اسم‌ها رو وارد کن، لینک رو بفرست</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="field">
+    <label>اسم تو 👤</label>
+    <input type="text" id="input-from" placeholder="مثلاً: علی" maxlength="40" oninput="onInput()" />
+  </div>
+
+  <div class="field">
+    <label>اسم اون 💘</label>
+    <input type="text" id="input-to" placeholder="مثلاً: سارا" maxlength="40" oninput="onInput()" />
+  </div>
+
+  <button class="btn-generate" id="btn-gen" onclick="generateLink()" disabled style="opacity:0.4;pointer-events:none;">
+    بساز لینک رو! ✨
+  </button>
+
+  <div class="result-box" id="result-box">
+    <div class="divider"></div>
+    <span class="label">لینک آماده‌ست 🎉</span>
+    <div class="link-row">
+      <span class="link-text" id="link-text"></span>
+      <button class="btn-copy" id="btn-copy" onclick="copyLink()">کپی</button>
+    </div>
+    <button class="btn-preview" onclick="previewLink()">پیش‌نمایش 👀</button>
+  </div>
+</div>
+
+<script>
+  function onInput() {
+    const from = document.getElementById('input-from').value.trim();
+    const to   = document.getElementById('input-to').value.trim();
+    const btn  = document.getElementById('btn-gen');
+    if (from && to) {
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'auto';
+    } else {
+      btn.style.opacity = '0.4';
+      btn.style.pointerEvents = 'none';
+    }
+  }
+
+  function generateLink() {
+    const from = document.getElementById('input-from').value.trim();
+    const to   = document.getElementById('input-to').value.trim();
+    if (!from || !to) return;
+
+    const url = `${location.origin}/invite?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+
+    document.getElementById('link-text').textContent = url;
+    document.getElementById('result-box').classList.add('show');
+  }
+
+  function copyLink() {
+    const text = document.getElementById('link-text').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('btn-copy');
+      btn.textContent = 'کپی شد ✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'کپی'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  function previewLink() {
+    window.open(document.getElementById('link-text').textContent, '_blank');
+  }
+</script>
+</body>
+</html>
