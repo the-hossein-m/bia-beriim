@@ -17,13 +17,21 @@ async function sendMessage(chatId, text) {
 }
 
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') return res.status(405).end();
+  if (req.method !== 'POST') return res.status(200).end(); // Telegram retries on non-200
 
-  const update = req.body;
+  // Parse body if not already parsed
+  let update = req.body;
+  if (typeof update === 'string') {
+    try { update = JSON.parse(update); } catch { return res.status(200).end(); }
+  }
+  if (!update) return res.status(200).end();
+
   const message = update?.message;
 
   // Only handle /start commands
   if (!message?.text?.startsWith('/start')) return res.status(200).end();
+
+  try {
 
   const chatId = String(message.chat.id);
   const parts = message.text.split(' ');
@@ -81,5 +89,9 @@ module.exports = async (req, res) => {
     `✅ <b>تأیید شد!</b>\n\n${session.from_name} عزیز، منتظر جواب <b>${session.to_name}</b> باش 💘\n\nوقتی فرم رو پر کنه، اینجا بهت خبر می‌دم!`
   );
 
-  return res.status(200).end();
+    return res.status(200).end();
+  } catch (err) {
+    console.error('Webhook error:', err.message, err.stack);
+    return res.status(200).end(); // Always 200 so Telegram doesn't retry
+  }
 };
