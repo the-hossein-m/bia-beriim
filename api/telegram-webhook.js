@@ -28,6 +28,9 @@ module.exports = async (req, res) => {
 
   const message = update?.message;
 
+  // Log all incoming updates for debugging
+  console.log('TG update:', JSON.stringify(update).slice(0, 300));
+
   // Only handle /start commands
   if (!message?.text?.startsWith('/start')) return res.status(200).end();
 
