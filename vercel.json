@@ -5,6 +5,7 @@
     { "src": "api/*.js", "use": "@vercel/node" }
   ],
   "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/", "dest": "/setup.html" },
     { "src": "/setup", "dest": "/setup.html" },
     { "src": "/invite", "dest": "/bia-beriim.html" }
