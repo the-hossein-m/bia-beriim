@@ -1,5 +1,5 @@
 const SUPABASE_URL = 'https://hplromejpkrrdaigmzkf.supabase.co';
-const SENDER = '0018018949161';
+const SENDER = '+18018949161';
 
 function normalizePhone(phone) {
   return phone.replace(/\D/g, '').replace(/^0/, '98');
