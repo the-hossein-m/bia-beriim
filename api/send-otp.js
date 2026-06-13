@@ -53,6 +53,14 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'خطا در ذخیره کد', detail: errBody });
   }
 
+  const isDev = process.env.NODE_ENV !== 'production';
+
+  // In dev mode: skip SMS and return the code directly for testing
+  if (isDev) {
+    console.log(`[DEV] OTP for ${normalizedPhone}: ${code}`);
+    return res.status(200).json({ success: true, dev_code: code });
+  }
+
   // Send SMS via Kavenegar
   const kavRes = await fetch(
     `https://api.kavenegar.com/v1/${process.env.KAVENEGAR_API_KEY}/sms/send.json`,

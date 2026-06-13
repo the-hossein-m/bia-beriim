@@ -303,7 +303,12 @@
         return;
       }
       const last4 = phone.slice(-4);
-      document.getElementById('otp-desc').textContent = `کد به ***${last4} ارسال شد`;
+      if (data.dev_code) {
+        document.getElementById('otp-desc').innerHTML =
+          `🛠️ <b>DEV MODE</b> — کد: <span style="color:#ff4d8d;font-size:1.3rem;font-weight:900;letter-spacing:0.2em">${data.dev_code}</span>`;
+      } else {
+        document.getElementById('otp-desc').textContent = `کد به ***${last4} ارسال شد`;
+      }
       goToStep(3);
       startCountdown(120);
     } catch {
