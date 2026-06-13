@@ -260,29 +260,95 @@
     #screen-final .summary b { color: var(--purple); }
 
     /* ── datetime ── */
-    .datetime-wrap { width: 100%; max-width: 360px; }
+    .datetime-wrap { width: 100%; max-width: 360px; position: relative; }
     .dt-field label {
       display: block;
       font-size: 0.9rem;
       font-weight: 700;
       color: #555;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.5rem;
     }
-    #input-date {
-      font-family: 'Vazirmatn', sans-serif;
-      font-size: 1rem;
-      width: 100%;
-      padding: 0.7rem 1rem;
+
+    /* custom jalali input */
+    .jalali-input {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
       border: 2.5px solid #eee;
-      border-radius: 12px;
-      outline: none;
+      border-radius: 14px;
       background: #fafafa;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      user-select: none;
+    }
+    .jalali-input:hover, .jalali-input.open { border-color: var(--pink); background: #fff; }
+    .jalali-input .j-display { font-size: 1rem; color: #222; }
+    .jalali-input .j-display.placeholder { color: #bbb; }
+    .jalali-input .j-icon { font-size: 1.1rem; }
+
+    /* calendar popup */
+    .jalali-calendar {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0; right: 0;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+      padding: 1rem;
+      z-index: 500;
+      animation: popIn 0.2s ease;
+    }
+    .jalali-calendar.open { display: block; }
+
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.8rem;
+    }
+    .cal-header .cal-title {
+      font-size: 1rem;
+      font-weight: 900;
       color: #222;
-      transition: border-color 0.2s;
-      direction: ltr;
+    }
+    .cal-nav {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--pink);
+      padding: 0.2rem 0.5rem;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .cal-nav:hover { background: #fff0f5; }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
       text-align: center;
     }
-    #input-date:focus { border-color: var(--pink); background: #fff; }
+    .cal-day-name {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #bbb;
+      padding: 0.2rem 0;
+    }
+    .cal-day {
+      font-size: 0.88rem;
+      padding: 0.4rem 0;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #333;
+      transition: background 0.15s, color 0.15s;
+    }
+    .cal-day:hover { background: #fff0f5; color: var(--pink); }
+    .cal-day.today { font-weight: 900; color: var(--pink); }
+    .cal-day.selected { background: var(--pink); color: #fff !important; }
+    .cal-day.empty { pointer-events: none; }
 
     /* ── confetti canvas ── */
     #confetti-canvas {
@@ -357,7 +423,13 @@
   <div class="datetime-wrap">
     <div class="dt-field">
       <label>تاریخ 🗓️</label>
-      <input type="date" id="input-date" oninput="checkDatetime()" />
+      <div class="jalali-picker-wrap" style="position:relative;">
+        <div class="jalali-input" id="jalali-input" onclick="toggleCalendar()">
+          <span class="j-display placeholder" id="jalali-display">یه روز انتخاب کن</span>
+          <span class="j-icon">📅</span>
+        </div>
+        <div class="jalali-calendar" id="jalali-calendar"></div>
+      </div>
     </div>
     <div class="dt-field" style="margin-top:1rem;">
       <label>چه وقتی از روز؟ 🕐</label>
@@ -447,7 +519,6 @@
       const rect = noBtn.getBoundingClientRect();
       noBtn.style.left  = rect.left + 'px';
       noBtn.style.top   = rect.top  + 'px';
-      noBtn.style.width = rect.width + 'px';
       noBtn.classList.add('escaped');
       hasEscaped = true;
       setTimeout(moveNo, 30);
@@ -495,11 +566,124 @@
     if (q === 'q3') checkDatetime();
   }
 
+  // ── Jalali calendar ──
+  const J_MONTHS = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+  const J_DAYS   = ['ش','ی','د','س','چ','پ','ج'];
+
+  function toJalali(gy, gm, gd) {
+    gy -= 1600; gm -= 1; gd -= 1;
+    let g_d = 365*gy + Math.floor((gy+3)/4) - Math.floor((gy+99)/100) + Math.floor((gy+399)/400);
+    [31,28+(gy%4===0&&(gy%100!==0||gy%400===0)?1:0),31,30,31,30,31,31,30,31,30,31].slice(0,gm).forEach(d=>g_d+=d);
+    g_d += gd;
+    let j_d = g_d - 79;
+    let j_np = Math.floor(j_d/12053); j_d %= 12053;
+    let jy = 979 + 33*j_np + 4*Math.floor(j_d/1461);
+    j_d %= 1461;
+    if (j_d >= 366) { jy += Math.floor((j_d-1)/365); j_d = (j_d-1)%365; }
+    let i=0, ms=[31,31,31,31,31,31,30,30,30,30,30];
+    for(;i<11&&j_d>=ms[i];i++) j_d-=ms[i];
+    return { jy, jm:i+1, jd:j_d+1 };
+  }
+
+  function jalaliDaysInMonth(jy, jm) {
+    if (jm <= 6) return 31;
+    if (jm <= 11) return 30;
+    return (jy-979)%33%4===1 ? 30 : 29;
+  }
+
+  function jalaliFirstWeekday(jy, jm) {
+    // convert first of month to Gregorian, get JS day, map to Sat-based
+    const g = toGregorian(jy, jm, 1);
+    const jsDay = new Date(g.gy, g.gm-1, g.gd).getDay();
+    return (jsDay + 1) % 7; // Sat=0 … Fri=6
+  }
+
+  function toGregorian(jy, jm, jd) {
+    jy-=979; jm-=1; jd-=1;
+    let j_d = 365*jy + Math.floor(jy/33)*8 + Math.floor(((jy%33)+3)/4);
+    [31,31,31,31,31,31,30,30,30,30,30,29].slice(0,jm).forEach(d=>j_d+=d);
+    j_d += jd;
+    let g_d = j_d + 79;
+    let gy = 1600 + 400*Math.floor(g_d/146097); g_d %= 146097;
+    let leap = true;
+    if(g_d>=36525){g_d--;gy+=100*Math.floor(g_d/36524);g_d%=36524;if(g_d>=365)g_d++;else leap=false;}
+    gy += 4*Math.floor(g_d/1461); g_d %= 1461;
+    if(g_d>=366){leap=false;g_d--;gy+=Math.floor(g_d/365);g_d%=365;}
+    let gms=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31], gm=0;
+    for(;g_d>=gms[gm];gm++) g_d-=gms[gm];
+    return {gy, gm:gm+1, gd:g_d+1};
+  }
+
+  const todayJ = toJalali(new Date().getFullYear(), new Date().getMonth()+1, new Date().getDate());
+  let pickerJY = todayJ.jy, pickerJM = todayJ.jm;
+  let selJY = null, selJM = null, selJD = null;
+  let calOpen = false;
+
+  function toggleCalendar() {
+    calOpen = !calOpen;
+    document.getElementById('jalali-calendar').classList.toggle('open', calOpen);
+    document.getElementById('jalali-input').classList.toggle('open', calOpen);
+    if (calOpen) renderCalendar();
+  }
+
+  function renderCalendar() {
+    const cal = document.getElementById('jalali-calendar');
+    const firstWd = jalaliFirstWeekday(pickerJY, pickerJM);
+    const daysInMonth = jalaliDaysInMonth(pickerJY, pickerJM);
+    let html = `
+      <div class="cal-header">
+        <button class="cal-nav" onclick="calNav(-1)">›</button>
+        <span class="cal-title">${J_MONTHS[pickerJM-1]} ${toFarsiNum(pickerJY)}</span>
+        <button class="cal-nav" onclick="calNav(1)">‹</button>
+      </div>
+      <div class="cal-grid">
+        ${J_DAYS.map(d=>`<div class="cal-day-name">${d}</div>`).join('')}
+        ${Array(firstWd).fill('<div class="cal-day empty"></div>').join('')}
+    `;
+    for (let d=1; d<=daysInMonth; d++) {
+      const isToday = d===todayJ.jd && pickerJM===todayJ.jm && pickerJY===todayJ.jy;
+      const isSel   = d===selJD && pickerJM===selJM && pickerJY===selJY;
+      html += `<div class="cal-day${isToday?' today':''}${isSel?' selected':''}" onclick="selectDay(${pickerJY},${pickerJM},${d})">${toFarsiNum(d)}</div>`;
+    }
+    html += '</div>';
+    cal.innerHTML = html;
+  }
+
+  function calNav(dir) {
+    pickerJM += dir;
+    if (pickerJM > 12) { pickerJM = 1; pickerJY++; }
+    if (pickerJM < 1)  { pickerJM = 12; pickerJY--; }
+    renderCalendar();
+  }
+
+  function selectDay(jy, jm, jd) {
+    selJY = jy; selJM = jm; selJD = jd;
+    const display = `${toFarsiNum(jy)}/${toFarsiNum(jm, true)}/${toFarsiNum(jd, true)}  —  ${J_MONTHS[jm-1]}`;
+    const el = document.getElementById('jalali-display');
+    el.textContent = display;
+    el.classList.remove('placeholder');
+    toggleCalendar();
+    checkDatetime();
+  }
+
+  function toFarsiNum(n, pad=false) {
+    const s = pad ? String(n).padStart(2,'0') : String(n);
+    return s.replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  }
+
+  // close calendar on outside click
+  document.addEventListener('click', e => {
+    if (calOpen && !e.target.closest('.jalali-picker-wrap') && !e.target.closest('.cal-nav')) {
+      calOpen = false;
+      document.getElementById('jalali-calendar').classList.remove('open');
+      document.getElementById('jalali-input').classList.remove('open');
+    }
+  });
+
   // ── date+time both required for next-3 ──
   function checkDatetime() {
-    const dateVal = document.getElementById('input-date').value;
-    const next3   = document.getElementById('next-3');
-    if (dateVal && answers.q3) next3.classList.add('ready');
+    const next3 = document.getElementById('next-3');
+    if (selJD && answers.q3) next3.classList.add('ready');
     else next3.classList.remove('ready');
   }
 
@@ -510,14 +694,8 @@
     const vibe = answers.q1 || 'یه جای باحال';
     const mood = answers.q2 || 'هرجور باشه';
     const time = answers.q3 || '';
-    const date = document.getElementById('input-date')?.value || '';
-
-    // format date for display
-    let dateDisplay = date;
-    if (date) {
-      const d = new Date(date);
-      dateDisplay = d.toLocaleDateString('fa-IR', { year:'numeric', month:'long', day:'numeric' });
-    }
+    const dateDisplay = selJD ? `${J_MONTHS[selJM-1]} ${toFarsiNum(selJD)}، ${toFarsiNum(selJY)}` : '';
+    const dateStore   = selJD ? `${selJY}/${selJM}/${selJD}` : '';
 
     document.getElementById('final-summary').innerHTML =
       `قرار: <b>${vibe}</b><br/>` +
@@ -533,7 +711,7 @@
       answer:        'آره',
       vibe:          vibe,
       mood:          mood,
-      proposed_date: date,
+      proposed_date: dateStore,
       proposed_time: time
     });
   }
