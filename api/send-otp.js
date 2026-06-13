@@ -47,8 +47,11 @@ module.exports = async (req, res) => {
     body: JSON.stringify({ phone: normalizedPhone, code, expires_at: expiresAt, used: false })
   });
 
-  if (!insertRes.ok)
-    return res.status(500).json({ error: 'خطا در ذخیره کد' });
+  if (!insertRes.ok) {
+    const errBody = await insertRes.text();
+    console.error('Supabase insert error:', insertRes.status, errBody);
+    return res.status(500).json({ error: 'خطا در ذخیره کد', detail: errBody });
+  }
 
   // Send SMS via Kavenegar
   const kavRes = await fetch(
