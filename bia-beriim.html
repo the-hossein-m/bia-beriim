@@ -461,8 +461,9 @@
 
   // ── URL params ──
   const params = new URLSearchParams(location.search);
-  const FROM = params.get('from') || 'یکی';
-  const TO   = params.get('to')   || 'عزیزم';
+  const FROM      = params.get('from') || 'یکی';
+  const TO        = params.get('to')   || 'عزیزم';
+  const SENDER_ID = params.get('sid')  || null;
 
   document.getElementById('from-name').textContent   = FROM;
   document.getElementById('from-name-2').textContent = FROM;
@@ -739,6 +740,21 @@
       proposed_date: dateStore,
       proposed_time: time
     });
+
+    // ── notify sender via SMS ──
+    if (SENDER_ID) {
+      fetch('/api/send-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sender_id:     SENDER_ID,
+          vibe,
+          mood,
+          proposed_date: dateStore,
+          proposed_time: time
+        })
+      }).catch(() => {}); // fire and forget
+    }
   }
 
   // ── confetti ──
