@@ -257,7 +257,7 @@
 </div>
 <script>
   let fromName = '', toName = '', phone = '', senderId = '';
-  let tgToken = '', tgPollInterval = null, countdownTimer = null;
+  let tgToken = '', tgBotUrl = '', tgPollInterval = null, countdownTimer = null;
 
   // ── dots helper ──
   function setDot(active) {
@@ -306,8 +306,8 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      tgToken = data.token;
-      document.getElementById('btn-tg-open').href = data.bot_url;
+      tgToken  = data.token;
+      tgBotUrl = data.bot_url;
       document.getElementById('btn-tg-open').style.display = 'block';
 
       // Start polling
@@ -320,8 +320,7 @@
   }
 
   async function openTelegramBot() {
-    const btn = document.getElementById('btn-tg-open');
-    if (btn.href) { window.open(btn.href, '_blank'); return; }
+    if (tgBotUrl) { window.open(tgBotUrl, '_blank'); return; }
     await initTelegram();
   }
 
