@@ -1,9 +1,12 @@
 const SUPABASE_URL = 'https://hplromejpkrrdaigmzkf.supabase.co';
+// anon key is public — safe to hardcode as fallback
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwbHJvbWVqcGtycmRhaWdtemtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMTUzODIsImV4cCI6MjA5Njg5MTM4Mn0.guKWuD3x3c595ZApqMMB_Zu-vQbxAArDGo86GO41YEQ';
 
 function supabaseHeaders() {
+  const key = process.env.SUPABASE_SERVICE_KEY || ANON_KEY;
   return {
-    apikey: process.env.SUPABASE_SERVICE_KEY,
-    Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+    apikey: key,
+    Authorization: `Bearer ${key}`,
     'Content-Type': 'application/json'
   };
 }
@@ -46,11 +49,13 @@ module.exports = async (req, res) => {
   if (!text.startsWith('BIA-')) return;
 
   try {
+    console.log(`[webhook] looking up short_code=${text} chat_id=${chatId}`);
     const sessionRes = await fetch(
       `${SUPABASE_URL}/rest/v1/telegram_sessions?short_code=eq.${text}&status=eq.pending&limit=1`,
       { headers: supabaseHeaders() }
     );
     const sessions = await sessionRes.json();
+    console.log(`[webhook] session lookup result:`, JSON.stringify(sessions).slice(0, 200));
 
     if (!sessions.length) {
       await sendMessage(chatId, '❌ کد نامعتبر یا منقضی شده. دوباره از سایت کد بگیر.');
