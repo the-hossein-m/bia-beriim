@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const SUPABASE_URL = 'https://hplromejpkrrdaigmzkf.supabase.co';
 
 function normalizePhone(phone) {
@@ -48,15 +49,18 @@ module.exports = async (req, res) => {
   });
 
   // Create sender record
+  const inviteToken = crypto.randomBytes(5).toString('hex');
+
   const senderRes = await fetch(`${SUPABASE_URL}/rest/v1/senders`, {
     method: 'POST',
     headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
-    body: JSON.stringify({ from_name, to_name, phone: normalizedPhone, verified: true })
+    body: JSON.stringify({ from_name, to_name, phone: normalizedPhone, verified: true, invite_token: inviteToken })
   });
 
   const senders = await senderRes.json();
   if (!senders.length)
     return res.status(500).json({ error: 'خطا در ایجاد حساب' });
 
-  return res.status(200).json({ success: true, sender_id: senders[0].id });
+  const inviteUrl = `https://bia-beriim.vercel.app/i/${inviteToken}`;
+  return res.status(200).json({ success: true, sender_id: senders[0].id, invite_url: inviteUrl });
 };

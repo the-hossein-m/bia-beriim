@@ -418,9 +418,9 @@
         return;
       }
       clearInterval(countdownTimer);
-      senderId = data.sender_id;
       document.getElementById('final-badge').textContent = '✓ شماره تأیید شد';
-      showFinalLink();
+      document.getElementById('link-text').textContent = data.invite_url;
+      showPanel('panel-final', 3);
     } catch {
       document.getElementById('err-otp').textContent = 'خطای شبکه. دوباره امتحان کن';
       btn.disabled = false; btn.textContent = 'تأیید و ساخت لینک ✨';
