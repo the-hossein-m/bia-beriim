@@ -63,23 +63,28 @@ module.exports = async (req, res) => {
     return res.status(200).json({ success: true, dev_code: code });
   }
 
-  // Send SMS via MeliPayamak (expects 09XXXXXXXXX format)
-  const mpPhone = '0' + normalizedPhone.replace(/^98/, '');
-  const mpRes = await fetch('https://rest.payamak-panel.com/api/SendSMS/SendSMS', {
+  // MeliPayamak expects 09XXXXXXXXX format for both to and username
+  const mpPhone    = '0' + normalizedPhone.replace(/^98/, '');
+  const mpUsername = MP_USERNAME.startsWith('98') ? '0' + MP_USERNAME.slice(2) : MP_USERNAME;
+
+  const mpBody = {
+    username: mpUsername,
+    password: MP_PASSWORD,
+    to:       mpPhone,
+    from:     MP_FROM,
+    text:     `کد تایید بیا بریم: ${code}`,
+    isflash:  false
+  };
+  console.log('[MP] sending:', JSON.stringify(mpBody));
+
+  const mpRes  = await fetch('https://rest.payamak-panel.com/api/SendSMS/SendSMS', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: MP_USERNAME,
-      password: MP_PASSWORD,
-      to:       mpPhone,
-      from:     MP_FROM,
-      text:     `کد تایید بیا بریم: ${code}`,
-      isflash:  false
-    })
+    body: JSON.stringify(mpBody)
   });
 
   const mpData = await mpRes.json();
-  // MeliPayamak returns RetStatus 1 on success
+  console.log('[MP] response:', JSON.stringify(mpData));
   if (mpData.RetStatus !== 1)
     return res.status(500).json({ error: 'خطا در ارسال پیامک', detail: mpData });
 
