@@ -291,7 +291,9 @@
     .jalali-calendar {
       display: none;
       position: fixed;
-      left: 1rem; right: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(360px, calc(100vw - 2rem));
       background: #fff;
       border-radius: 18px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.18);
