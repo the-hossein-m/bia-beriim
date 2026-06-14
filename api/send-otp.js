@@ -79,8 +79,8 @@ module.exports = async (req, res) => {
 
   const mpRes  = await fetch('https://rest.payamak-panel.com/api/SendSMS/SendSMS', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(mpBody)
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(mpBody).toString()
   });
 
   const mpData = await mpRes.json();
