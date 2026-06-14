@@ -61,8 +61,11 @@ module.exports = async (req, res) => {
     `📍 قرار: ${vibe || '—'}`,
     `✨ حال‌وهوا: ${mood || '—'}`,
     proposed_date ? `📅 تاریخ: ${proposed_date}` : null,
-    proposed_time ? `🕐 وقت: ${proposed_time}` : null
-  ].filter(Boolean);
+    proposed_time ? `🕐 وقت: ${proposed_time}` : null,
+    ``,
+    `اگه بیا بریم به کارت اومد، یه چایی برامون بخر ☕`,
+    `https://daramet.com/bia_beriim?webintent&donate=50000`
+  ].filter(l => l !== null);
 
   const richMessage  = lines.join('\n');
   const plainMessage = lines.map(l => l.replace(/<[^>]+>/g, '')).join('\n');
