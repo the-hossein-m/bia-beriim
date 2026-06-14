@@ -1,5 +1,7 @@
 const SUPABASE_URL = 'https://hplromejpkrrdaigmzkf.supabase.co';
-const SENDER = '+18018949161';
+const MP_USERNAME = process.env.MELIPAYAMAK_USERNAME || '989128401729';
+const MP_PASSWORD = process.env.MELIPAYAMAK_PASSWORD || '05FPDBT28';
+const MP_FROM     = process.env.MELIPAYAMAK_FROM     || '50004001891284';
 
 function normalizePhone(phone) {
   return phone.replace(/\D/g, '').replace(/^0/, '98');
@@ -61,23 +63,24 @@ module.exports = async (req, res) => {
     return res.status(200).json({ success: true, dev_code: code });
   }
 
-  // Send SMS via Kavenegar
-  const kavRes = await fetch(
-    `https://api.kavenegar.com/v1/${process.env.KAVENEGAR_API_KEY}/sms/send.json`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        receptor: normalizedPhone,
-        sender: SENDER,
-        message: `کد تایید بیا بریم: ${code}`
-      }).toString()
-    }
-  );
+  // Send SMS via MeliPayamak
+  const mpRes = await fetch('https://rest.payamak-panel.com/api/SendSMS/SendSMS', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      username: MP_USERNAME,
+      password: MP_PASSWORD,
+      to:       normalizedPhone,
+      from:     MP_FROM,
+      text:     `کد تایید بیا بریم: ${code}`,
+      isflash:  false
+    })
+  });
 
-  const kavData = await kavRes.json();
-  if (kavData.return?.status !== 200)
-    return res.status(500).json({ error: 'خطا در ارسال پیامک', detail: kavData.return });
+  const mpData = await mpRes.json();
+  // MeliPayamak returns RetStatus 1 on success
+  if (mpData.RetStatus !== 1)
+    return res.status(500).json({ error: 'خطا در ارسال پیامک', detail: mpData });
 
   return res.status(200).json({ success: true });
 };
