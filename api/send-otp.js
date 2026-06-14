@@ -67,10 +67,12 @@ module.exports = async (req, res) => {
   const mpRes = await fetch('https://rest.payamak-panel.com/api/SendSMS/SendSMS', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    // MeliPayamak expects 09XXXXXXXXX format
+    const mpPhone = '0' + normalizedPhone.replace(/^98/, '');
     body: JSON.stringify({
       username: MP_USERNAME,
       password: MP_PASSWORD,
-      to:       normalizedPhone,
+      to:       mpPhone,
       from:     MP_FROM,
       text:     `کد تایید بیا بریم: ${code}`,
       isflash:  false
