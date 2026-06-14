@@ -2,6 +2,7 @@
   "rewrites": [
     { "source": "/", "destination": "/setup.html" },
     { "source": "/setup", "destination": "/setup.html" },
-    { "source": "/invite", "destination": "/bia-beriim.html" }
+    { "source": "/invite", "destination": "/bia-beriim.html" },
+    { "source": "/i/:token", "destination": "/bia-beriim.html" }
   ]
 }

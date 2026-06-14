@@ -344,9 +344,9 @@
       const data = await res.json();
       if (data.verified) {
         clearInterval(tgPollInterval);
-        senderId = data.sender_id;
         document.getElementById('final-badge').textContent = '✓ تلگرام متصل شد';
-        showFinalLink();
+        document.getElementById('link-text').textContent = data.invite_url;
+        showPanel('panel-final', 3);
       } else if (data.expired) {
         clearInterval(tgPollInterval);
         document.getElementById('tg-waiting').style.display = 'none';
@@ -440,7 +440,12 @@
 
   // ── Final link ──
   function showFinalLink() {
-    const url = `${location.origin}/invite?from=${encodeURIComponent(fromName)}&to=${encodeURIComponent(toName)}&sid=${senderId}`;
+    const url = document.getElementById('link-text').textContent;
+    if (!url) return; // link was already set by telegram flow
+    showPanel('panel-final', 3);
+  }
+
+  function setFinalLink(url) {
     document.getElementById('link-text').textContent = url;
     showPanel('panel-final', 3);
   }

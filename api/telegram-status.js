@@ -1,4 +1,5 @@
 const SUPABASE_URL = 'https://hplromejpkrrdaigmzkf.supabase.co';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwbHJvbWVqcGtycmRhaWdtemtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMTUzODIsImV4cCI6MjA5Njg5MTM4Mn0.guKWuD3x3c595ZApqMMB_Zu-vQbxAArDGo86GO41YEQ';
 
 function supabaseHeaders() {
   return {
@@ -29,8 +30,19 @@ module.exports = async (req, res) => {
 
   const session = sessions[0];
 
-  if (session.status === 'verified') {
-    return res.status(200).json({ verified: true, sender_id: session.sender_id });
+  if (session.status === 'verified' && session.sender_id) {
+    // fetch invite token from senders table
+    const key = process.env.SUPABASE_SERVICE_KEY || ANON_KEY;
+    const senderRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/senders?id=eq.${session.sender_id}&limit=1`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
+    );
+    const senders = await senderRes.json();
+    const inviteToken = senders[0]?.invite_token;
+    const inviteUrl = inviteToken
+      ? `https://bia-beriim.vercel.app/i/${inviteToken}`
+      : null;
+    return res.status(200).json({ verified: true, sender_id: session.sender_id, invite_url: inviteUrl });
   }
 
   if (new Date(session.expires_at) < new Date()) {

@@ -11,7 +11,12 @@ function supabaseHeaders() {
   };
 }
 
+const crypto = require('crypto');
 const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7978787976:AAGs17IM3YSaTU9FHFgC6hU2uwT_TvFKgUA';
+
+function generateInviteToken() {
+  return crypto.randomBytes(5).toString('hex'); // 10-char hex, e.g. "a3f9c12b7e"
+}
 
 async function sendMessage(chatId, text) {
   return fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
@@ -76,15 +81,17 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // Create sender record
+    // Create sender record with invite token
+    const inviteToken = generateInviteToken();
     const senderRes = await fetch(`${SUPABASE_URL}/rest/v1/senders`, {
       method: 'POST',
       headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
       body: JSON.stringify({
-        from_name: session.from_name,
-        to_name:   session.to_name,
+        from_name:        session.from_name,
+        to_name:          session.to_name,
         telegram_chat_id: chatId,
-        verified: true
+        verified:         true,
+        invite_token:     inviteToken
       })
     });
     const senders = await senderRes.json();
@@ -97,8 +104,12 @@ module.exports = async (req, res) => {
       body: JSON.stringify({ status: 'verified', chat_id: chatId, sender_id: sender.id })
     });
 
+    const inviteUrl = `https://bia-beriim.vercel.app/i/${inviteToken}`;
     await sendMessage(chatId,
-      `✅ <b>متصل شدی!</b>\n\n${session.from_name} عزیز، منتظر جواب <b>${session.to_name}</b> باش 💘\n\nوقتی فرم رو پر کنه، اینجا بهت خبر می‌دم!`
+      `✅ <b>متصل شدی!</b>\n\n` +
+      `${session.from_name} عزیز، لینک دعوت آماده‌ست 👇\n\n` +
+      `<code>${inviteUrl}</code>\n\n` +
+      `این رو برای <b>${session.to_name}</b> بفرست — وقتی جواب داد اینجا بهت خبر می‌دم 💘`
     );
 
     return res.status(200).end();

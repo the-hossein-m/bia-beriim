@@ -460,10 +460,31 @@
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // ── URL params ──
-  const params = new URLSearchParams(location.search);
-  const FROM      = params.get('from') || 'یکی';
-  const TO        = params.get('to')   || 'عزیزم';
-  const SENDER_ID = params.get('sid')  || null;
+  // Extract token from /i/:token path or legacy ?from/to/sid params
+  const pathToken = location.pathname.match(/\/i\/([^/?]+)/)?.[1];
+  const params    = new URLSearchParams(location.search);
+
+  let FROM      = params.get('from') || 'یکی';
+  let TO        = params.get('to')   || 'عزیزم';
+  let SENDER_ID = params.get('sid')  || null;
+
+  // Load invite info from token
+  if (pathToken) {
+    fetch(`/api/invite-info?token=${pathToken}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.from_name) {
+          FROM      = data.from_name;
+          TO        = data.to_name;
+          SENDER_ID = data.sender_id;
+          document.getElementById('from-name').textContent   = FROM;
+          document.getElementById('from-name-2').textContent = FROM;
+          document.getElementById('to-name').textContent     = TO;
+          document.getElementById('final-from').textContent  = FROM;
+        }
+      })
+      .catch(() => {});
+  }
 
   document.getElementById('from-name').textContent   = FROM;
   document.getElementById('from-name-2').textContent = FROM;
