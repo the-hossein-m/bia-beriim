@@ -26,6 +26,8 @@ async function sendMessage(chatId, text) {
   });
 }
 
+const SITE_URL = process.env.SITE_URL || 'https://bia-beriim.vercel.app';
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(200).end();
 
@@ -104,7 +106,8 @@ module.exports = async (req, res) => {
       body: JSON.stringify({ status: 'verified', chat_id: chatId, sender_id: sender.id })
     });
 
-    const inviteUrl = `https://bia-beriim.vercel.app/i/${inviteToken}`;
+    const host = req.headers['x-forwarded-host'] || req.headers.host || 'bia-beriim.vercel.app';
+    const inviteUrl = `https://${host}/i/${inviteToken}`;
     await sendMessage(chatId,
       `✅ <b>متصل شدی!</b>\n\n` +
       `${session.from_name} عزیز، لینک دعوت آماده‌ست 👇\n\n` +
