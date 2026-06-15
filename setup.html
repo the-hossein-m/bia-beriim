@@ -235,10 +235,10 @@
     <div class="panel-header">
       <div class="emoji">🔐</div>
       <h2>کد تأیید</h2>
-      <p id="otp-desc">کد ۶ رقمی ارسال شده رو وارد کن</p>
+      <p id="otp-desc">کد ۵ رقمی ارسال شده رو وارد کن</p>
     </div>
     <div class="field">
-      <input type="tel" id="input-otp" placeholder="_ _ _ _ _ _" maxlength="6"
+      <input type="tel" id="input-otp" placeholder="_ _ _ _ _" maxlength="5"
              oninput="checkOTP()" dir="ltr" />
     </div>
     <p class="error-msg" id="err-otp"></p>
@@ -395,7 +395,7 @@
   // ── Panel 4: OTP ──
   function checkOTP() {
     const v = document.getElementById('input-otp').value.replace(/\D/g,'');
-    document.getElementById('btn-verify-otp').disabled = v.length < 6;
+    document.getElementById('btn-verify-otp').disabled = v.length < 5;
     document.getElementById('err-otp').textContent = '';
   }
 

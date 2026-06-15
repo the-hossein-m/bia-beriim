@@ -7,7 +7,8 @@ function normalizePhone(phone) {
 }
 
 function generateOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  // 5 digits, to match MeliPayamak's OTP code length
+  return Math.floor(10000 + Math.random() * 90000).toString();
 }
 
 function supabaseHeaders() {
