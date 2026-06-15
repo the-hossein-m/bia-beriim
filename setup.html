@@ -303,6 +303,9 @@
     document.querySelectorAll('#tone-labels span').forEach((s, i) =>
       s.classList.toggle('active', i === tone));
   }
+  // reset to default tone on load (avoid browser form-restoration) + sync highlight/desc
+  document.getElementById('tone-range').value = '1';
+  updateTone();
   let tgToken = '', tgBotUrl = '', tgPollInterval = null, countdownTimer = null;
 
   // ── dots helper ──
