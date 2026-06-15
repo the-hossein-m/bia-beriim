@@ -132,6 +132,13 @@
       cursor:pointer; transition:background 0.15s, color 0.15s;
     }
     .btn-preview:hover { background:#a855f7; color:#fff; }
+    .btn-share {
+      width:100%; padding:0.85rem; margin-bottom:0.6rem;
+      font-family:'Vazirmatn',sans-serif; font-size:1rem; font-weight:800;
+      background:linear-gradient(135deg,#ff4d8d,#ff9a76); color:#fff;
+      border:none; border-radius:14px; cursor:pointer; transition:opacity 0.15s;
+    }
+    .btn-share:hover { opacity:0.92; }
   </style>
 </head>
 <body>
@@ -261,6 +268,7 @@
       <span class="link-text" id="link-text"></span>
       <button class="btn-copy" id="btn-copy" onclick="copyLink()">کپی</button>
     </div>
+    <button class="btn-share" onclick="shareLink()">اشتراک‌گذاری 📤</button>
     <button class="btn-preview" onclick="previewLink()">پیش‌نمایش 👀</button>
   </div>
 
@@ -455,6 +463,18 @@
       btn.textContent = 'کپی شد ✓'; btn.classList.add('copied');
       setTimeout(() => { btn.textContent = 'کپی'; btn.classList.remove('copied'); }, 2000);
     });
+  }
+
+  async function shareLink() {
+    const url = document.getElementById('link-text').textContent;
+    if (!url) return;
+    const text = 'اینو باز کن 👀';
+    if (navigator.share) {
+      try { await navigator.share({ text, url }); }
+      catch (e) { /* user cancelled the share sheet — ignore */ }
+    } else {
+      copyLink(); // desktop / unsupported: fall back to copying the link
+    }
   }
 
   function previewLink() { window.open(document.getElementById('link-text').textContent, '_blank'); }
