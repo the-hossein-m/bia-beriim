@@ -1,7 +1,6 @@
 const SUPABASE_URL = 'https://hplromejpkrrdaigmzkf.supabase.co';
-const MP_USERNAME = process.env.MELIPAYAMAK_USERNAME || '989128401729';
-const MP_PASSWORD = process.env.MELIPAYAMAK_PASSWORD || '05FPDBT28';
-const MP_FROM     = process.env.MELIPAYAMAK_FROM     || '50004001891284';
+// MeliPayamak new console API (console.melipayamak.com) — auth via API key, not username/password.
+const MP_APIKEY = process.env.MELIPAYAMAK_APIKEY || '7aa0f507d2db469ca18a1565b4c3e9e1';
 
 function normalizePhone(phone) {
   return phone.replace(/\D/g, '').replace(/^0/, '98');
@@ -33,7 +32,6 @@ module.exports = async (req, res) => {
   if (normalizedPhone.length < 11)
     return res.status(400).json({ error: 'شماره موبایل نامعتبر است' });
 
-  const code = generateOTP();
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
   // Delete old OTPs for this phone
@@ -42,7 +40,43 @@ module.exports = async (req, res) => {
     headers: supabaseHeaders()
   });
 
-  // Insert new OTP
+  // Vercel always sets NODE_ENV=production, so gate dev mode on VERCEL_ENV instead.
+  // 'production' = main deployment (send real SMS); preview/local = return code on-screen.
+  const isDev = process.env.VERCEL_ENV !== 'production';
+
+  // Determine the code:
+  //  - dev/preview: generate locally and return it on-screen (no SMS)
+  //  - production:  MeliPayamak's OTP service generates the code, sends it, and returns it
+  let code;
+
+  if (isDev) {
+    code = generateOTP();
+    console.log(`[DEV] OTP for ${normalizedPhone}: ${code}`);
+  } else {
+    const mpPhone = '0' + normalizedPhone.replace(/^98/, ''); // recipient as 09XXXXXXXXX
+    console.log('[MP] otp to=' + mpPhone);
+
+    const mpRes = await fetch(`https://console.melipayamak.com/api/send/otp/${MP_APIKEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: mpPhone })
+    });
+
+    const mpRaw = await mpRes.text();
+    console.log('[MP] status=' + mpRes.status + ' body=' + mpRaw);
+
+    let mpData;
+    try { mpData = JSON.parse(mpRaw); }
+    catch (e) { return res.status(500).json({ error: 'خطا در ارسال پیامک', raw: mpRaw }); }
+
+    // Success: OTP service returns the generated code and status 'عملیات موفق'
+    if (!mpData.code)
+      return res.status(500).json({ error: 'خطا در ارسال پیامک', detail: mpData });
+
+    code = String(mpData.code);
+  }
+
+  // Store the code (the one we'll verify against in verify-otp.js)
   const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/otp_sessions`, {
     method: 'POST',
     headers: supabaseHeaders(),
@@ -55,38 +89,8 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'خطا در ذخیره کد', detail: errBody });
   }
 
-  const isDev = process.env.NODE_ENV !== 'production';
-
-  // In dev mode: skip SMS and return the code directly for testing
-  if (isDev) {
-    console.log(`[DEV] OTP for ${normalizedPhone}: ${code}`);
+  if (isDev)
     return res.status(200).json({ success: true, dev_code: code });
-  }
-
-  // MeliPayamak expects 09XXXXXXXXX format for both to and username
-  const mpPhone    = '0' + normalizedPhone.replace(/^98/, '');
-  const mpUsername = MP_USERNAME.startsWith('98') ? '0' + MP_USERNAME.slice(2) : MP_USERNAME;
-
-  const mpBody = {
-    username: mpUsername,
-    password: MP_PASSWORD,
-    to:       mpPhone,
-    from:     MP_FROM,
-    text:     `کد تایید بیا بریم: ${code}`,
-    isflash:  false
-  };
-  console.log('[MP] sending:', JSON.stringify(mpBody));
-
-  const mpRes  = await fetch('https://rest.payamak-panel.com/api/SendSMS/SendSMS', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams(mpBody).toString()
-  });
-
-  const mpData = await mpRes.json();
-  console.log('[MP] response:', JSON.stringify(mpData));
-  if (mpData.RetStatus !== 1)
-    return res.status(500).json({ error: 'خطا در ارسال پیامک', detail: mpData });
 
   return res.status(200).json({ success: true });
 };
