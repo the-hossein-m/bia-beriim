@@ -27,6 +27,9 @@ module.exports = async (req, res) => {
   if (!from_name || !to_name)
     return res.status(400).json({ error: 'Missing names' });
 
+  // Affection level (0=friendly, 1=flirty default, 2=romantic)
+  const tone = [0, 1, 2].includes(Number(req.body.tone)) ? Number(req.body.tone) : 1;
+
   const token     = crypto.randomBytes(16).toString('hex');
   const shortCode = generateShortCode();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
@@ -34,7 +37,7 @@ module.exports = async (req, res) => {
   const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/telegram_sessions`, {
     method: 'POST',
     headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
-    body: JSON.stringify({ token, short_code: shortCode, from_name, to_name, status: 'pending', expires_at: expiresAt })
+    body: JSON.stringify({ token, short_code: shortCode, from_name, to_name, tone, status: 'pending', expires_at: expiresAt })
   });
 
   if (!insertRes.ok) {

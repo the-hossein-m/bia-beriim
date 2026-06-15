@@ -93,7 +93,8 @@ module.exports = async (req, res) => {
         to_name:          session.to_name,
         telegram_chat_id: chatId,
         verified:         true,
-        invite_token:     inviteToken
+        invite_token:     inviteToken,
+        tone:             session.tone ?? 1
       })
     });
     const senders = await senderRes.json();

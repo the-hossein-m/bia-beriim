@@ -139,6 +139,19 @@
       border:none; border-radius:14px; cursor:pointer; transition:opacity 0.15s;
     }
     .btn-share:hover { opacity:0.92; }
+    .tone-range {
+      width:100%; margin:0.5rem 0 0.3rem; accent-color:#ff4d8d; cursor:pointer; height:6px;
+    }
+    .tone-labels {
+      display:flex; justify-content:space-between; font-size:0.8rem; color:#aaa; font-weight:700;
+    }
+    .tone-labels span { flex:1; text-align:center; transition:color 0.15s; }
+    .tone-labels span:first-child { text-align:right; }
+    .tone-labels span:last-child  { text-align:left; }
+    .tone-labels span.active { color:#ff4d8d; }
+    .tone-desc {
+      margin-top:0.5rem; text-align:center; font-size:0.85rem; color:#ff4d8d; font-weight:700;
+    }
   </style>
 </head>
 <body>
@@ -164,6 +177,14 @@
     <div class="field">
       <label>اسم اون 💘</label>
       <input type="text" id="input-to" placeholder="مثلاً: سارا" maxlength="40" oninput="checkNames()" />
+    </div>
+    <div class="field">
+      <label>چه حالی داشته باشه؟ 💞</label>
+      <input type="range" id="tone-range" class="tone-range" min="0" max="2" step="1" value="1" oninput="updateTone()" />
+      <div class="tone-labels" id="tone-labels">
+        <span>دوستانه</span><span>دلبرانه</span><span>عاشقانه</span>
+      </div>
+      <p class="tone-desc" id="tone-desc">شیطون و بانمک 😊</p>
     </div>
     <button class="btn btn-primary" id="btn-names" onclick="goToMethod()" disabled>بعدی ←</button>
   </div>
@@ -274,7 +295,14 @@
 
 </div>
 <script>
-  let fromName = '', toName = '', phone = '', senderId = '';
+  let fromName = '', toName = '', phone = '', senderId = '', tone = 1;
+  const TONE_DESCS = ['خودمونی و بی‌خیال 😎', 'شیطون و بانمک 😊', 'عاشقانه و از ته دل 💖'];
+  function updateTone() {
+    tone = parseInt(document.getElementById('tone-range').value, 10);
+    document.getElementById('tone-desc').textContent = TONE_DESCS[tone];
+    document.querySelectorAll('#tone-labels span').forEach((s, i) =>
+      s.classList.toggle('active', i === tone));
+  }
   let tgToken = '', tgBotUrl = '', tgPollInterval = null, countdownTimer = null;
 
   // ── dots helper ──
@@ -302,6 +330,7 @@
   function goToMethod() {
     fromName = document.getElementById('input-from').value.trim();
     toName   = document.getElementById('input-to').value.trim();
+    tone     = parseInt(document.getElementById('tone-range').value, 10);
     showPanel('panel-method', 2);
   }
 
@@ -320,7 +349,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ from_name: fromName, to_name: toName })
+        body: JSON.stringify({ from_name: fromName, to_name: toName, tone })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -416,7 +445,7 @@
       const res  = await fetch('/api/verify-otp', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         credentials: 'include',
-        body: JSON.stringify({ phone, code, from_name: fromName, to_name: toName })
+        body: JSON.stringify({ phone, code, from_name: fromName, to_name: toName, tone })
       });
       const data = await res.json();
       if (!res.ok) {

@@ -18,6 +18,6 @@ module.exports = async (req, res) => {
   const rows = await r.json();
   if (!rows.length) return res.status(404).json({ error: 'Invalid invite link' });
 
-  const { id, from_name, to_name } = rows[0];
-  return res.status(200).json({ sender_id: id, from_name, to_name });
+  const { id, from_name, to_name, tone } = rows[0];
+  return res.status(200).json({ sender_id: id, from_name, to_name, tone: tone ?? 1 });
 };

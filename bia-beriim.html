@@ -479,19 +479,71 @@
           FROM      = data.from_name;
           TO        = data.to_name;
           SENDER_ID = data.sender_id;
-          document.getElementById('from-name').textContent   = FROM;
-          document.getElementById('from-name-2').textContent = FROM;
-          document.getElementById('to-name').textContent     = TO;
-          document.getElementById('final-from').textContent  = FROM;
+          TONE      = [0, 1, 2].includes(data.tone) ? data.tone : 1;
+          applyTone();
         }
       })
       .catch(() => {});
   }
 
-  document.getElementById('from-name').textContent   = FROM;
-  document.getElementById('from-name-2').textContent = FROM;
-  document.getElementById('to-name').textContent     = TO;
-  document.getElementById('final-from').textContent  = FROM;
+  // ── affection tone (0=friendly, 1=flirty default, 2=romantic) ──
+  let TONE = 1;
+  const TONES = {
+    0: {
+      introTitle:'{from} یه پیشنهاد باحال برات داره 😎', introSub:'نترس، چیز خاصی نیست 😄', introBtn:'خب بگو ببینم 👀',
+      ask:'{from} می‌خواد بدونه…<br/>پایه‌ای یه دوری بزنیم، {to}؟ 😄', yes:'آره بریم! 😎', no:'نچ 🙃',
+      hints:['کجا فرار می‌کنی؟ 😄','بی‌خیال نشو 🙃','یالا دیگه 😆','گرفتمت! 😜','در نرو 🏃','تسلیم شو 😅'],
+      q1title:'کجا بریم؟', q1:['کافه ☕','قدم بزنیم 🚶','فیلم 🎬','بازی و تفریح 🎮'],
+      q2title:'حسِ امروزت چیه؟', q2:['ریلکس 😌','پرانرژی ⚡','شیطون 😜','هرجور تو 🙌'],
+      finalTitle:'{from} خوشحال شد! 🎉'
+    },
+    1: {
+      introTitle:'{from} یه چیزی داره ازت می‌پرسه… 😊', introSub:'مطمئنم آماده‌ای. نفس بکش 😌', introBtn:'باشه، بپرس 🙈',
+      ask:'{from}، می‌خواد بدونه…<br/>باهاش می‌ری بیرون، {to}؟ 🥺', yes:'آره، حتماً! 🥰', no:'نه 🙃',
+      hints:['برو اون طرف 😤','فرار کن اگه می‌تونی 😈','نه نداریم! 🚫','بگیرم نمیشه؟ 😂','تلاش می‌کنی؟ 😅','هنوزم سعی می‌کنی 🙈','داری خسته می‌شی 😴','تسلیم شو دیگه 🥹'],
+      q1title:'چه جور قراری دوست داری؟', q1:['کافه ☕','فیلم 🎬','شام دونفره 🍝','گشت‌وگذار 🌆'],
+      q2title:'حال‌وهوات چطوره؟', q2:['ریلکس 😌','شیک‌وپیک 🕶️','دیوونه‌وار 🤪','هرجور تو بخوای 🫶'],
+      finalTitle:'{from} داره از خوشحالی پس می‌افته! 🎉'
+    },
+    2: {
+      introTitle:'{from} یه حرف قشنگ برای تو داره 💛', introSub:'قلبت رو آماده کن 💗', introBtn:'بگو، گوش می‌دم 💞',
+      ask:'{from} از ته دل می‌پرسه…<br/>میای دنیامو باهام قسمت کنی، {to}؟ 🥹💖', yes:'آره، با تمام وجودم! 😍', no:'نه 💔',
+      hints:['نگو نه به عشقم 🥺','دلم می‌شکنه‌ها 💔','بیا اینوری عزیزم 💗','تو که دلت نمیاد 🥹','یه آره بگو فقط 💞','من منتظرتم 💘'],
+      q1title:'قرار رویایی‌مون کجا باشه؟', q1:['شام رمانتیک 🍷','زیر نور شمع 🕯️','قدم‌زدن دونفره 🌙','سفر دونفره ✈️'],
+      q2title:'حال دلت چطوره؟', q2:['عاشق 😍','آروم کنارت 🤍','پر از هیجان 💓','غرق در تو 🥰'],
+      finalTitle:'{from} داره تو ابرها سیر می‌کنه! 💖'
+    }
+  };
+  let hints = TONES[1].hints;
+  const fillTone = s => s.replaceAll('{from}', FROM).replaceAll('{to}', TO);
+  function buildChoices(containerId, opts, q) {
+    const c = document.getElementById(containerId);
+    c.innerHTML = '';
+    opts.forEach(opt => {
+      const b = document.createElement('button');
+      b.className = 'choice-btn';
+      b.dataset.val = opt;
+      b.textContent = opt;
+      b.onclick = () => pickChoice(b, q);
+      c.appendChild(b);
+    });
+  }
+  function applyTone() {
+    const T = TONES[TONE] || TONES[1];
+    document.querySelector('#screen-intro h1').textContent       = fillTone(T.introTitle);
+    document.querySelector('#screen-intro .sub').textContent     = fillTone(T.introSub);
+    document.querySelector('#screen-intro .btn-main').textContent = T.introBtn;
+    document.querySelector('#screen-ask .question').innerHTML    = fillTone(T.ask);
+    document.querySelector('#screen-ask .btn-yes').textContent   = T.yes;
+    document.getElementById('btn-no').textContent                = T.no;
+    hints = T.hints;
+    document.querySelector('#screen-quiz-1 h2').textContent      = T.q1title;
+    document.querySelector('#screen-quiz-2 h2').textContent      = T.q2title;
+    buildChoices('choices-1', T.q1, 'q1');
+    buildChoices('choices-2', T.q2, 'q2');
+    document.querySelector('#screen-final h2').textContent       = fillTone(T.finalTitle);
+  }
+  applyTone();
 
   // ── answers store ──
   const answers = {};
@@ -528,10 +580,7 @@
     noBtn.addEventListener('mouseenter', escapeNo);
     noBtn.addEventListener('click', escapeNo);
   }
-  const hints = [
-    'برو اون طرف 😤','فرار کن اگه می‌تونی 😈','نه نداریم! 🚫','بگیرم نمیشه؟ 😂',
-    'تلاش می‌کنی؟ 😅','هنوزم سعی می‌کنی 🙈','داری خسته می‌شی 😴','تسلیم شو دیگه 🥹'
-  ];
+  // `hints` is defined above and refreshed by applyTone() per affection tone
   let noClickCount = 0;
   let hasEscaped = false;
 

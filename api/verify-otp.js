@@ -24,6 +24,9 @@ module.exports = async (req, res) => {
   if (!phone || !code || !from_name || !to_name)
     return res.status(400).json({ error: 'اطلاعات ناقص است' });
 
+  // Affection level (0=friendly, 1=flirty default, 2=romantic)
+  const tone = [0, 1, 2].includes(Number(req.body.tone)) ? Number(req.body.tone) : 1;
+
   const normalizedPhone = normalizePhone(phone);
 
   // Find valid OTP
@@ -54,7 +57,7 @@ module.exports = async (req, res) => {
   const senderRes = await fetch(`${SUPABASE_URL}/rest/v1/senders`, {
     method: 'POST',
     headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
-    body: JSON.stringify({ from_name, to_name, phone: normalizedPhone, verified: true, invite_token: inviteToken })
+    body: JSON.stringify({ from_name, to_name, phone: normalizedPhone, verified: true, invite_token: inviteToken, tone })
   });
 
   const senders = await senderRes.json();
