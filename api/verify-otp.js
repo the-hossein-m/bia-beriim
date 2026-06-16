@@ -64,6 +64,8 @@ module.exports = async (req, res) => {
   if (!senders.length)
     return res.status(500).json({ error: 'خطا در ایجاد حساب' });
 
-  const inviteUrl = `https://bia-beriim.vercel.app/i/${inviteToken}`;
+  // Use the request host so dev-created links stay on dev (and prod on prod)
+  const host = req.headers['x-forwarded-host'] || req.headers.host || 'bia-beriim.vercel.app';
+  const inviteUrl = `https://${host}/i/${inviteToken}`;
   return res.status(200).json({ success: true, sender_id: senders[0].id, invite_url: inviteUrl });
 };

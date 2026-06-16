@@ -39,8 +39,9 @@ module.exports = async (req, res) => {
     );
     const senders = await senderRes.json();
     const inviteToken = senders[0]?.invite_token;
+    const host = req.headers['x-forwarded-host'] || req.headers.host || 'bia-beriim.vercel.app';
     const inviteUrl = inviteToken
-      ? `https://bia-beriim.vercel.app/i/${inviteToken}`
+      ? `https://${host}/i/${inviteToken}`
       : null;
     return res.status(200).json({ verified: true, sender_id: session.sender_id, invite_url: inviteUrl });
   }
