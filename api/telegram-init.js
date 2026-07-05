@@ -49,6 +49,8 @@ module.exports = async (req, res) => {
   return res.status(200).json({
     token,
     short_code: shortCode,
-    bot_url: `https://t.me/${botUsername}`
+    bot_url: `https://t.me/${botUsername}`,
+    // one-tap deep link: opens the bot and auto-sends "/start <token>"
+    deep_link: `https://t.me/${botUsername}?start=${token}`
   });
 };

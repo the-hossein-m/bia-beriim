@@ -26,7 +26,68 @@ async function sendMessage(chatId, text) {
   });
 }
 
-const SITE_URL = process.env.SITE_URL || 'https://bia-beriim.vercel.app';
+const GREETING =
+  `💘 <b>خوش اومدی به بیا بریم!</b>\n\n` +
+  `این ربات بهت کمک می‌کنه که از کسی که دوستش داری دعوت کنی — و وقتی جواب داد، مستقیم اینجا بهت خبر می‌دم.\n\n` +
+  `<b>چطور استفاده کنم؟</b>\n` +
+  `۱. برو به سایت: bia-beriim.vercel.app\n` +
+  `۲. اسم خودت و اون کسی که می‌خوای دعوتش کنی رو وارد کن\n` +
+  `۳. تلگرام رو انتخاب کن و روی «باز کردن ربات» بزن\n` +
+  `۴. لینک دعوتت همینجا آماده می‌شه — بفرستش!\n\n` +
+  `وقتی اون کسی فرم رو پر کنه، اینجا بهت پیام می‌دم 🎉`;
+
+// Look up a pending session by a given column (token or short_code), verify it,
+// create the sender, mark the session verified, and reply with the invite link.
+async function verifyByField(field, value, chatId, req) {
+  const sessionRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/telegram_sessions?${field}=eq.${encodeURIComponent(value)}&status=eq.pending&limit=1`,
+    { headers: supabaseHeaders() }
+  );
+  const sessions = await sessionRes.json();
+
+  if (!sessions.length) {
+    await sendMessage(chatId, '❌ نامعتبر یا منقضی شده. دوباره از سایت لینک بگیر.');
+    return;
+  }
+
+  const session = sessions[0];
+
+  if (new Date(session.expires_at) < new Date()) {
+    await sendMessage(chatId, '⏰ منقضی شده. دوباره از سایت لینک بگیر.');
+    return;
+  }
+
+  const inviteToken = generateInviteToken();
+  const senderRes = await fetch(`${SUPABASE_URL}/rest/v1/senders`, {
+    method: 'POST',
+    headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
+    body: JSON.stringify({
+      from_name:        session.from_name,
+      to_name:          session.to_name,
+      telegram_chat_id: chatId,
+      verified:         true,
+      invite_token:     inviteToken,
+      tone:             session.tone ?? 1
+    })
+  });
+  const senders = await senderRes.json();
+  const sender  = senders[0];
+
+  await fetch(`${SUPABASE_URL}/rest/v1/telegram_sessions?id=eq.${session.id}`, {
+    method: 'PATCH',
+    headers: supabaseHeaders(),
+    body: JSON.stringify({ status: 'verified', chat_id: chatId, sender_id: sender.id })
+  });
+
+  const host = req.headers['x-forwarded-host'] || req.headers.host || 'bia-beriim.vercel.app';
+  const inviteUrl = `https://${host}/i/${inviteToken}`;
+  await sendMessage(chatId,
+    `✅ <b>متصل شدی!</b>\n\n` +
+    `${session.from_name} عزیز، لینک دعوت آماده‌ست 👇\n\n` +
+    `<code>${inviteUrl}</code>\n\n` +
+    `این رو برای <b>${session.to_name}</b> بفرست — وقتی جواب داد اینجا بهت خبر می‌دم 💘`
+  );
+}
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(200).end();
@@ -41,80 +102,26 @@ module.exports = async (req, res) => {
   if (!message?.text) return res.status(200).end();
 
   const chatId = String(message.chat.id);
-  const text   = message.text.trim().toUpperCase();
-
-  // Handle /start — greet user and ask for code
-  if (text === '/START' || text.startsWith('/START ')) {
-    await sendMessage(chatId,
-      `💘 <b>خوش اومدی به بیا بریم!</b>\n\n` +
-      `این ربات بهت کمک می‌کنه که از کسی که دوستش داری دعوت کنی — و وقتی جواب داد، مستقیم اینجا بهت خبر می‌دم.\n\n` +
-      `<b>چطور استفاده کنم؟</b>\n` +
-      `۱. برو به سایت: bia-beriim.vercel.app\n` +
-      `۲. اسم خودت و اون کسی که می‌خوای دعوتش کنی رو وارد کن\n` +
-      `۳. تلگرام رو انتخاب کن — یه کد بهت نشون می‌ده\n` +
-      `۴. اون کد رو اینجا برای من بفرست\n` +
-      `۵. لینک دعوتت آماده‌ست — بفرستش!\n\n` +
-      `وقتی اون کسی فرم رو پر کنه، اینجا بهت پیام می‌دم 🎉`
-    );
-    return res.status(200).end();
-  }
-
-  // Check if message matches a pending short code
-  if (!text.startsWith('BIA-')) return res.status(200).end();
+  const raw    = message.text.trim();       // case preserved (token is lowercase hex)
+  const upper  = raw.toUpperCase();
 
   try {
-    console.log(`[webhook] looking up short_code=${text} chat_id=${chatId}`);
-    const sessionRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/telegram_sessions?short_code=eq.${text}&status=eq.pending&limit=1`,
-      { headers: supabaseHeaders() }
-    );
-    const sessions = await sessionRes.json();
-    console.log(`[webhook] session lookup result:`, JSON.stringify(sessions).slice(0, 200));
-
-    if (!sessions.length) {
-      await sendMessage(chatId, '❌ کد نامعتبر یا منقضی شده. دوباره از سایت کد بگیر.');
-      return;
+    // /start [payload] — deep-link one-tap connect, or plain greeting
+    if (upper === '/START' || upper.startsWith('/START ')) {
+      const payload = raw.split(/\s+/)[1];  // the session token, if present
+      if (payload) {
+        await verifyByField('token', payload, chatId, req);
+      } else {
+        await sendMessage(chatId, GREETING);
+      }
+      return res.status(200).end();
     }
 
-    const session = sessions[0];
-
-    if (new Date(session.expires_at) < new Date()) {
-      await sendMessage(chatId, '⏰ کد منقضی شده. دوباره از سایت کد بگیر.');
-      return;
+    // BIA-XXXX — manual code fallback
+    if (upper.startsWith('BIA-')) {
+      await verifyByField('short_code', upper, chatId, req);
+      return res.status(200).end();
     }
-
-    // Create sender record with invite token
-    const inviteToken = generateInviteToken();
-    const senderRes = await fetch(`${SUPABASE_URL}/rest/v1/senders`, {
-      method: 'POST',
-      headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
-      body: JSON.stringify({
-        from_name:        session.from_name,
-        to_name:          session.to_name,
-        telegram_chat_id: chatId,
-        verified:         true,
-        invite_token:     inviteToken,
-        tone:             session.tone ?? 1
-      })
-    });
-    const senders = await senderRes.json();
-    const sender  = senders[0];
-
-    // Mark session verified
-    await fetch(`${SUPABASE_URL}/rest/v1/telegram_sessions?short_code=eq.${text}`, {
-      method: 'PATCH',
-      headers: supabaseHeaders(),
-      body: JSON.stringify({ status: 'verified', chat_id: chatId, sender_id: sender.id })
-    });
-
-    const host = req.headers['x-forwarded-host'] || req.headers.host || 'bia-beriim.vercel.app';
-    const inviteUrl = `https://${host}/i/${inviteToken}`;
-    await sendMessage(chatId,
-      `✅ <b>متصل شدی!</b>\n\n` +
-      `${session.from_name} عزیز، لینک دعوت آماده‌ست 👇\n\n` +
-      `<code>${inviteUrl}</code>\n\n` +
-      `این رو برای <b>${session.to_name}</b> بفرست — وقتی جواب داد اینجا بهت خبر می‌دم 💘`
-    );
 
     return res.status(200).end();
 

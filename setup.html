@@ -103,6 +103,10 @@
       box-shadow:0 4px 18px rgba(34,158,217,0.35);
     }
     .btn-telegram:hover { opacity:0.92; }
+    .tg-fallback { margin-top:1rem; }
+    .tg-fallback summary { font-size:0.8rem; color:#aaa; cursor:pointer; text-align:center; list-style:none; }
+    .tg-fallback summary::-webkit-details-marker { display:none; }
+    .tg-fallback summary:hover { color:#229ED9; }
     .btn-ghost { background:none; color:#aaa; font-size:0.85rem; font-weight:700; padding:0.5rem; }
     .btn-ghost:hover { color:#ff4d8d; }
 
@@ -153,9 +157,82 @@
     .tone-desc {
       margin-top:0.5rem; text-align:center; font-size:0.85rem; color:#ff4d8d; font-weight:700;
     }
+
+    /* help button + modal */
+    .help-btn {
+      position:fixed; top:1.2rem; left:1.2rem; width:40px; height:40px;
+      border-radius:50%; background:#fff; border:2px solid #ff4d8d; color:#ff4d8d;
+      font-size:1.1rem; font-weight:900; cursor:pointer; z-index:50;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 4px 14px rgba(255,77,141,0.2); transition:transform 0.15s, background 0.15s;
+    }
+    .help-btn:hover { background:#ff4d8d; color:#fff; transform:scale(1.06); }
+
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,0.45);
+      display:none; align-items:center; justify-content:center;
+      padding:1.2rem; z-index:100;
+    }
+    .modal-overlay.active { display:flex; }
+    .modal-box {
+      background:#fff; border-radius:22px; padding:1.8rem 1.6rem;
+      width:100%; max-width:420px; max-height:85vh; overflow-y:auto;
+      box-shadow:0 12px 50px rgba(0,0,0,0.25); animation:fadeUp 0.25s ease;
+      position:relative;
+    }
+    .modal-close {
+      position:absolute; top:0.9rem; left:0.9rem; width:30px; height:30px;
+      border-radius:50%; border:none; background:#f5f5f5; color:#999;
+      font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    }
+    .modal-close:hover { background:#eee; color:#555; }
+    .modal-box h3 { text-align:center; font-size:1.2rem; font-weight:900; color:#222; margin-bottom:1.2rem; }
+    .modal-steps { display:flex; flex-direction:column; gap:1rem; }
+    .modal-step { display:flex; align-items:flex-start; gap:0.8rem; }
+    .modal-step .num {
+      flex-shrink:0; width:28px; height:28px; border-radius:50%;
+      background:linear-gradient(135deg,#ff4d8d,#ff8c42); color:#fff;
+      font-size:0.85rem; font-weight:900; display:flex; align-items:center; justify-content:center;
+    }
+    .modal-step .txt { font-size:0.88rem; color:#555; line-height:1.6; padding-top:0.15rem; }
+    .modal-step .txt b { color:#222; }
+    .modal-box .btn { margin-top:1.5rem; }
   </style>
 </head>
 <body>
+
+<button class="help-btn" onclick="openHelp()" aria-label="راهنما">؟</button>
+
+<div class="modal-overlay" id="help-modal" onclick="closeHelpOnOverlay(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeHelp()">✕</button>
+    <h3>چطور کار می‌کنه؟ 🤔</h3>
+    <div class="modal-steps">
+      <div class="modal-step">
+        <span class="num">۱</span>
+        <span class="txt"><b>اسم خودت و اسم طرف رو بنویس</b> و حال و هوای دعوتت رو انتخاب کن (دوستانه، دلبرانه یا عاشقانه).</span>
+      </div>
+      <div class="modal-step">
+        <span class="num">۲</span>
+        <span class="txt"><b>یه راه برای خبردار شدن انتخاب کن</b> — تلگرام (سریع‌تره) یا پیامک.</span>
+      </div>
+      <div class="modal-step">
+        <span class="num">۳</span>
+        <span class="txt"><b>لینک دعوت رو بگیر و برای طرف بفرست</b> — توی چت، استوری، هرجا که راحتی.</span>
+      </div>
+      <div class="modal-step">
+        <span class="num">۴</span>
+        <span class="txt">طرف لینک رو باز می‌کنه، یه کوییز کوچیک و بامزه پر می‌کنه و جوابش رو می‌فرسته.</span>
+      </div>
+      <div class="modal-step">
+        <span class="num">۵</span>
+        <span class="txt"><b>خودت همون لحظه خبردار می‌شی</b> 🎉 و می‌فهمی کجا و کِی قرار می‌گیرید.</span>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="closeHelp()">فهمیدم، بریم! 🚀</button>
+  </div>
+</div>
+
 <div class="card">
 
   <div class="steps">
@@ -221,23 +298,26 @@
     <div class="panel-header">
       <div class="emoji">✈️</div>
       <h2>وصل شو به ربات</h2>
-      <p>ربات رو باز کن و این کد رو بهش بفرست</p>
+      <p>با یه کلیک ربات باز می‌شه و خودکار وصل می‌شی</p>
     </div>
-    <div style="text-align:center;">
-      <div id="tg-short-code" style="
-        font-size:2rem; font-weight:900; letter-spacing:0.15em;
-        color:#229ED9; background:#f0f8ff; border-radius:14px;
-        padding:1rem; border:2.5px dashed #229ED9; cursor:pointer;
-      " onclick="copyShortCode()" title="برای کپی کلیک کن">
-        در حال بارگذاری...
-      </div>
-      <p style="font-size:0.75rem; color:#aaa; margin-top:0.5rem;">برای کپی کلیک کن</p>
-    </div>
-    <button class="btn btn-telegram" id="btn-tg-open" onclick="openTelegramBot()">باز کردن ربات ↗</button>
+    <button class="btn btn-telegram" id="btn-tg-open" onclick="openTelegramBot()">باز کردن ربات و اتصال ↗</button>
     <div class="tg-waiting" id="tg-waiting" style="display:none;">
       <div class="spinner"></div>
-      <p>منتظر دریافت کد توی تلگرام هستم…</p>
+      <p>منتظر اتصال از توی تلگرام هستم…</p>
     </div>
+    <details class="tg-fallback">
+      <summary>ربات باز نشد؟ کد رو دستی بفرست</summary>
+      <div style="text-align:center; margin-top:0.7rem;">
+        <div id="tg-short-code" style="
+          font-size:1.7rem; font-weight:900; letter-spacing:0.15em;
+          color:#229ED9; background:#f0f8ff; border-radius:14px;
+          padding:0.8rem; border:2.5px dashed #229ED9; cursor:pointer;
+        " onclick="copyShortCode()" title="برای کپی کلیک کن">
+          در حال بارگذاری...
+        </div>
+        <p style="font-size:0.75rem; color:#aaa; margin-top:0.5rem;">این کد رو توی چت ربات بفرست</p>
+      </div>
+    </details>
     <p class="error-msg" id="err-tg"></p>
     <button class="btn btn-ghost" onclick="showPanel('panel-method', 2)">← برگشت</button>
   </div>
@@ -296,6 +376,11 @@
 
 </div>
 <script>
+  // ── Help modal ──
+  function openHelp() { document.getElementById('help-modal').classList.add('active'); }
+  function closeHelp() { document.getElementById('help-modal').classList.remove('active'); }
+  function closeHelpOnOverlay(e) { if (e.target.id === 'help-modal') closeHelp(); }
+
   let fromName = '', toName = '', phone = '', senderId = '', tone = 1;
   const TONE_DESCS = ['خودمونی و بی‌خیال 😎', 'شیطون و بانمک 😊', 'عاشقانه و از ته دل 💖'];
   function updateTone() {
@@ -307,7 +392,7 @@
   // reset to default tone on load (avoid browser form-restoration) + sync highlight/desc
   document.getElementById('tone-range').value = '1';
   updateTone();
-  let tgToken = '', tgBotUrl = '', tgPollInterval = null, countdownTimer = null;
+  let tgToken = '', tgBotUrl = '', tgDeepLink = '', tgPollInterval = null, countdownTimer = null;
 
   // ── dots helper ──
   function setDot(active) {
@@ -358,8 +443,9 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      tgToken  = data.token;
-      tgBotUrl = data.bot_url;
+      tgToken    = data.token;
+      tgBotUrl   = data.bot_url;
+      tgDeepLink = data.deep_link || data.bot_url;
       document.getElementById('tg-short-code').textContent = data.short_code;
       document.getElementById('btn-tg-open').style.display = 'block';
       document.getElementById('tg-waiting').style.display  = 'flex';
@@ -374,7 +460,9 @@
   }
 
   async function openTelegramBot() {
-    if (tgBotUrl) { window.open(tgBotUrl, '_blank'); return; }
+    // prefer the one-tap deep link (opens bot + auto-sends /start <token>)
+    const url = tgDeepLink || tgBotUrl;
+    if (url) { window.open(url, '_blank'); return; }
     await initTelegram();
   }
 
