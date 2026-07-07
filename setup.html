@@ -214,7 +214,7 @@
       </div>
       <div class="modal-step">
         <span class="num">۲</span>
-        <span class="txt"><b>یه راه برای خبردار شدن انتخاب کن</b> — تلگرام (سریع‌تره) یا پیامک.</span>
+        <span class="txt"><b>ربات تلگرام رو با یه کلیک وصل کن</b> تا وقتی جواب اومد همون‌جا بهت خبر بدیم.</span>
       </div>
       <div class="modal-step">
         <span class="num">۳</span>
@@ -319,7 +319,7 @@
       </div>
     </details>
     <p class="error-msg" id="err-tg"></p>
-    <button class="btn btn-ghost" onclick="showPanel('panel-method', 2)">← برگشت</button>
+    <button class="btn btn-ghost" onclick="showPanel('panel-names', 1)">← برگشت</button>
   </div>
 
   <!-- PANEL 3b: SMS phone -->
@@ -420,7 +420,8 @@
     fromName = document.getElementById('input-from').value.trim();
     toName   = document.getElementById('input-to').value.trim();
     tone     = parseInt(document.getElementById('tone-range').value, 10);
-    showPanel('panel-method', 2);
+    // Telegram-only: skip the method picker and go straight to Telegram connect
+    startTelegram();
   }
 
   // ── Panel 2: Method ──
