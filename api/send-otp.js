@@ -1,6 +1,6 @@
 const SUPABASE_URL = 'https://hplromejpkrrdaigmzkf.supabase.co';
 // MeliPayamak new console API (console.melipayamak.com) — auth via API key, not username/password.
-const MP_APIKEY = process.env.MELIPAYAMAK_APIKEY || '7aa0f507d2db469ca18a1565b4c3e9e1';
+const MP_APIKEY = process.env.MELIPAYAMAK_APIKEY;
 
 function normalizePhone(phone) {
   return phone.replace(/\D/g, '').replace(/^0/, '98');

@@ -12,7 +12,7 @@ function supabaseHeaders() {
 }
 
 const crypto = require('crypto');
-const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7978787976:AAGs17IM3YSaTU9FHFgC6hU2uwT_TvFKgUA';
+const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 function generateInviteToken() {
   return crypto.randomBytes(5).toString('hex'); // 10-char hex, e.g. "a3f9c12b7e"
