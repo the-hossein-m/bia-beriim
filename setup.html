@@ -158,6 +158,14 @@
       margin-top:0.5rem; text-align:center; font-size:0.85rem; color:#ff4d8d; font-weight:700;
     }
 
+    /* hero / intro */
+    .hero-tagline { text-align:center; color:#555; font-size:0.95rem; line-height:1.9; margin:0.3rem 0 1.4rem; }
+    .hero-steps { display:flex; justify-content:space-between; gap:0.5rem; margin-bottom:1.6rem; }
+    .hero-step { flex:1; display:flex; flex-direction:column; align-items:center; gap:0.5rem;
+      font-size:0.8rem; color:#666; font-weight:700; line-height:1.4; }
+    .hero-num { width:34px; height:34px; border-radius:50%; background:#ffe3ee; color:#ff4d8d;
+      display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:900; }
+
     /* help button + modal */
     .help-btn {
       position:fixed; top:1.2rem; left:1.2rem; width:40px; height:40px;
@@ -235,14 +243,33 @@
 
 <div class="card">
 
-  <div class="steps">
+  <div class="steps" id="steps-bar" style="display:none;">
     <div class="step-dot active" id="dot-1"></div>
     <div class="step-dot"        id="dot-2"></div>
     <div class="step-dot"        id="dot-3"></div>
   </div>
 
+  <!-- PANEL 0: Intro / hero -->
+  <div class="panel active" id="panel-intro">
+    <div class="panel-header">
+      <div class="emoji">💌</div>
+      <h2>بیا بریم</h2>
+      <p>از کسی که دوستش داری، بدون استرس قرار بذار</p>
+    </div>
+    <p class="hero-tagline">
+      یه لینک بامزه می‌سازی، برای طرف می‌فرستی،<br/>
+      و وقتی «آره» گفت همون لحظه خبردار می‌شی 🎉
+    </p>
+    <div class="hero-steps">
+      <div class="hero-step"><span class="hero-num">۱</span><span>اسم‌ها و حال‌وهوا</span></div>
+      <div class="hero-step"><span class="hero-num">۲</span><span>لینک رو بفرست</span></div>
+      <div class="hero-step"><span class="hero-num">۳</span><span>جوابش رو بگیر</span></div>
+    </div>
+    <button class="btn btn-primary" onclick="showPanel('panel-names', 1)">بزن بریم 🚀</button>
+  </div>
+
   <!-- PANEL 1: Names -->
-  <div class="panel active" id="panel-names">
+  <div class="panel" id="panel-names">
     <div class="panel-header">
       <div class="emoji">💌</div>
       <h2>لینک دعوت بساز</h2>
@@ -406,6 +433,8 @@
   function showPanel(id, dot) {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    // step dots are hidden on the intro; reveal them once inside the flow
+    document.getElementById('steps-bar').style.display = (id === 'panel-intro') ? 'none' : 'flex';
     setDot(dot);
   }
 
