@@ -9,7 +9,7 @@ function supabaseHeaders() {
   };
 }
 
-const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7978787976:AAGs17IM3YSaTU9FHFgC6hU2uwT_TvFKgUA';
+const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 async function sendTelegram(chatId, text) {
   const res = await fetch(
